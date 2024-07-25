@@ -14,6 +14,7 @@ public class CodeReviewsDetailResponseDto {
   private final String name;
   private final String title;
   private final String category;
+  private final String contents;
   private final String code;
   private final LocalDateTime createdAt;
   private final LocalDateTime modifiedAt;
@@ -26,6 +27,7 @@ public class CodeReviewsDetailResponseDto {
     this.title = codeReviews.getTitle();
     this.name = user.getName();
     this.category = codeReviews.getCategory();
+    this.contents = codeReviews.getContents();
     this.code = code;
     this.createdAt = codeReviews.getCreatedAt();
     this.modifiedAt = codeReviews.getModifiedAt();
