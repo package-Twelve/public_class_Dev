@@ -46,7 +46,7 @@ dependencies {
     testImplementation 'com.h2database:h2'
 
     // AWS SDK for Java v1
-    implementation 'com.amazonaws:aws-java-sdk-s3:1.12.394'
+    implementation 'org.springframework.cloud:spring-cloud-starter-aws:2.2.6.RELEASE'
 
     // minio
     implementation 'io.minio:minio:8.3.4'
