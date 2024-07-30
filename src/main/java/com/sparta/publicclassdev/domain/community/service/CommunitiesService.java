@@ -106,9 +106,8 @@ public class CommunitiesService {
     }
 
 
-    public List<CommunitiesResponseDto> searchPost(String keyword, int page) {
-        Pageable pageable = PageRequest.of(page, 10);
-        Page<Communities> communityPage = repository.findByTitleContainingIgnoreCase(keyword, pageable);
+    public List<CommunitiesResponseDto> searchPost(String keyword) {
+        List<Communities> communityPage = repository.findByTitleContainingIgnoreCase(keyword);
         Long currentTime = System.currentTimeMillis();
 
         if(!communityPage.isEmpty()){

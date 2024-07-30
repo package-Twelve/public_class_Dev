@@ -68,8 +68,8 @@ public class CommunitiesController {
 
     @GetMapping("/community/search")
     public ResponseEntity<DataResponse<List<CommunitiesResponseDto>>> searchPost
-        (@RequestParam("keyword") String keyword, @RequestParam("page") int page){
-        List<CommunitiesResponseDto> responseDto = service.searchPost(keyword, page);
+        (@RequestParam("keyword") String keyword){
+        List<CommunitiesResponseDto> responseDto = service.searchPost(keyword);
         return ResponseEntity.status(HttpStatus.OK).body(new DataResponse<>(HttpStatus.OK.value(), " 조회 완료", responseDto));
     }
 
