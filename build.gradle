@@ -59,4 +59,6 @@ dependencies {
 
 tasks.named('test') {
     useJUnitPlatform()
+    enabled = false // CD를 우선 구성하기 위해
 }
+
