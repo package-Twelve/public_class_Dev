@@ -1,6 +1,7 @@
 package com.sparta.publicclassdev.domain.teams.entity;
 
 import com.sparta.publicclassdev.domain.chatrooms.entity.ChatRooms;
+import com.sparta.publicclassdev.domain.coderuns.entity.CodeRuns;
 import com.sparta.publicclassdev.domain.winners.entity.Winners;
 import com.sparta.publicclassdev.global.entity.Timestamped;
 import jakarta.persistence.Entity;
@@ -34,6 +35,9 @@ public class Teams extends Timestamped {
 
     @OneToMany(mappedBy = "teams")
     private List<Winners> winners;
+
+    @OneToMany(mappedBy = "teams")
+    private List<CodeRuns> codeRuns;
 
     @Builder
     public Teams(String name, List<TeamUsers> teamUsers, List<ChatRooms> chatRooms,

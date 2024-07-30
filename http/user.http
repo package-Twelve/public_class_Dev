@@ -144,7 +144,7 @@ Content-Type: application/json
 #          "type": "SUBTRACT"
 #        }'
 PATCH http://localhost:8080/api/users/points
-Authorization: {{Authorization}}
+Authorization: "{{Authorization}}"
 Content-Type: application/json
 
 {

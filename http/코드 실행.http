@@ -1,15 +1,3 @@
-### ADMIN 유저 회원가입
-POST http://localhost:8080/api/users/signup
-Content-Type: application/json
-
-{
-  "name" : "홍길동",
-  "email" : "test@email.com",
-  "password" : "Asdf2345!",
-  "admin" : "true",
-  "adminToken" : "admin1234!"
-}
-
 ### ADMIN 로그인
 POST http://localhost:8080/api/users/login
 Content-Type: application/json
@@ -40,17 +28,35 @@ Content-Type: application/json
   client.global.set("RefreshToken", response.body.data.refreshToken);
 %}
 
-### 팀 매칭 신청
-POST http://localhost:8080/api/teams/match
+
+### 파이썬 실행
+POST http://localhost:8080/api/coderuns/1/4/runs
 Content-Type: application/json
 Authorization: {{Authorization}}
 
-### 팀 생성
-POST http://localhost:8080/api/teams/create
+{
+    "language": "python",
+    "code": "print(\"Hello, world!\")"
+}
+
+
+### JavaScript 코드 실행
+POST http://localhost:8080/api/coderuns/1/4/runs
 Content-Type: application/json
 Authorization: {{Authorization}}
 
-### 팀 조회
-GET http://localhost:8080/api/teams/1
+{
+    "language": "javascript",
+    "code": "console.log(\"Hello, world!\");"
+}
+
+
+### Java 코드 실행
+POST http://localhost:8080/api/coderuns/1/4/runs
 Content-Type: application/json
 Authorization: {{Authorization}}
+
+{
+    "language": "java",
+    "code": "public class Main { public static void main(String[] args) { System.out.println(\"Hello, world!\"); } }"
+}

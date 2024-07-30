@@ -1,15 +1,3 @@
-### ADMIN 유저 회원가입
-POST http://localhost:8080/api/users/signup
-Content-Type: application/json
-
-{
-  "name" : "홍길동",
-  "email" : "test@email.com",
-  "password" : "Asdf2345!",
-  "admin" : "true",
-  "adminToken" : "admin1234!"
-}
-
 ### ADMIN 로그인
 POST http://localhost:8080/api/users/login
 Content-Type: application/json
@@ -20,8 +8,8 @@ Content-Type: application/json
 }
 
 > {%
-  client.global.set("Authorization", response.headers.valueOf("Authorization"));
-  client.global.set("RefreshToken", response.headers.valueOf("RefreshToken"));
+  client.global.set("Authorization", response.body.data.accessToken);
+  client.global.set("RefreshToken", response.body.data.refreshToken);
 %}
 
 ### 일반 유저 로그인
@@ -34,9 +22,10 @@ Content-Type: application/json
 }
 
 > {%
-  client.global.set("Authorization", response.headers.valueOf("Authorization"));
-  client.global.set("RefreshToken", response.headers.valueOf("RefreshToken"));
+  client.global.set("Authorization", response.body.data.accessToken);
+  client.global.set("RefreshToken", response.body.data.refreshToken);
 %}
+
 
 ### 코드카타 생성
 POST http://localhost:8080/api/codekatas

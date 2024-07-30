@@ -1,8 +1,10 @@
 package com.sparta.publicclassdev.global.security;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sparta.publicclassdev.domain.users.dao.UserRedisDao;
 import com.sparta.publicclassdev.global.exception.CustomException;
 import com.sparta.publicclassdev.global.exception.ErrorCode;
+import com.sparta.publicclassdev.global.exception.ExceptionResponse;
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -42,12 +44,14 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
             String blackList = redisDao.getBlackList(tokenValue);
             if(blackList != null) {
                 if(blackList.equals("logout")) {
-                    throw new CustomException(ErrorCode.USER_LOGOUT);
+                    jwtExceptionHandler(res, ErrorCode.USER_LOGOUT);
+                    return;
                 }
             }
             if (!jwtUtil.validateToken(tokenValue)) {
                 log.error("Token Error");
-                throw new CustomException(ErrorCode.INVALID_TOKEN);
+                jwtExceptionHandler(res, ErrorCode.TOKEN_EXPIRED);
+                return;
             }
 
             Claims info = jwtUtil.getUserInfoFromToken(tokenValue);
@@ -74,5 +78,17 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
     private Authentication createAuthentication(String username) {
         UserDetails userDetails = userDetailsService.loadUserByUsername(username);
         return new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+    }
+
+    public void jwtExceptionHandler(HttpServletResponse response, ErrorCode error) {
+        response.setStatus(error.getStatus());
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+        try {
+            String json = new ObjectMapper().writeValueAsString(new ExceptionResponse(error.getStatus(), error.getMessage()));
+            response.getWriter().write(json);
+        } catch (Exception e) {
+            log.error(e.getMessage());
+        }
     }
 }
