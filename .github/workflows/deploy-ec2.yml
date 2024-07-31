@@ -42,21 +42,6 @@ jobs:
       - name: Docker Hub Push
         run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/publicclassdev:latest
 
-      - name: Get GitHub IP
-        id: ip
-        uses: haythem/public-ip@v1.2
-
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v1
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ secrets.AWS_REGION }}
-
-      - name: Add GitHub IP to AWS
-        run: |
-          aws ec2 authorize-security-group-ingress --group-id ${{ secrets.AWS_SG_ID }} --protocol tcp --port 22 --cidr ${{ steps.ip.outputs.ipv4 }}/32
-
       - name: Create .env file
         env:
           SECRETS_CONTEXT: ${{ toJson(secrets) }}
@@ -68,7 +53,7 @@ jobs:
         with:
           host: ${{ secrets.EC2_WEB_HOST }}
           username: ${{ secrets.EC2_WEB_USERNAME }}
-          password: ${{ secrets.EC2_WEB_PASSWORD }}
+          key: ${{ secrets.EC2_PRIVATE_KEY }}
           port: ${{ secrets.EC2_WEB_SSH_PORT }}
           timeout: 60s
           script: |
@@ -77,7 +62,3 @@ jobs:
             
             sudo docker pull ${{ secrets.DOCKERHUB_USERNAME }}/publicclassdev:latest
             sudo docker run -it -d -p 8080:8080 --name publicclassdev --env-file .env ${{ secrets.DOCKERHUB_USERNAME }}/publicclassdev:latest
-
-      - name: Remove IP FROM Security Group
-        run: |
-          aws ec2 revoke-security-group-ingress --group-id ${{ secrets.AWS_SG_ID }} --protocol tcp --port 22 --cidr ${{ steps.ip.outputs.ipv4 }}/32
