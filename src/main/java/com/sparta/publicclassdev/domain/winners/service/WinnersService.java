@@ -2,6 +2,7 @@ package com.sparta.publicclassdev.domain.winners.service;
 
 import com.sparta.publicclassdev.domain.coderuns.entity.CodeRuns;
 import com.sparta.publicclassdev.domain.coderuns.repository.CodeRunsRepository;
+import com.sparta.publicclassdev.domain.teams.entity.Teams;
 import com.sparta.publicclassdev.domain.winners.dto.WinnersResponseDto;
 import com.sparta.publicclassdev.domain.winners.entity.Winners;
 import com.sparta.publicclassdev.domain.winners.repository.WinnersRepository;
@@ -15,6 +16,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -51,6 +53,7 @@ public class WinnersService {
             .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_CODEKATA));
     }
     
+    @Transactional
     public void dailyWinners() {
         List<CodeRuns> codeRunsList = getYesterdayCodeRuns();
         
