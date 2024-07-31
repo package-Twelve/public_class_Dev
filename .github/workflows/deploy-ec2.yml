@@ -59,21 +59,28 @@ jobs:
             sudo docker rm publicclassdev || true
             
             # Create .env file with environment variables
-            echo "REDIS_HOST=${{ secrets.REDIS_HOST }}" | sudo tee /home/ubuntu/.env
+             echo "REDIS_HOST=${{ secrets.REDIS_HOST }}" | sudo tee /home/ubuntu/.env
+            echo "EC2_WEB_PASSWORD=${{ secrets.EC2_WEB_PASSWORD }}" | sudo tee -a /home/ubuntu/.env
             echo "REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }}" | sudo tee -a /home/ubuntu/.env
             echo "AWS_S3_BUCKET_NAME=${{ secrets.AWS_S3_BUCKET_NAME }}" | sudo tee -a /home/ubuntu/.env
+            echo "EC2_WEB_USERNAME=${{ secrets.EC2_WEB_USERNAME }}" | sudo tee -a /home/ubuntu/.env
+            echo "DOCKERHUB_PASSWORD=${{ secrets.DOCKERHUB_PASSWORD }}" | sudo tee -a /home/ubuntu/.env
+            echo "DOCKERHUB_USERNAME=${{ secrets.DOCKERHUB_USERNAME }}" | sudo tee -a /home/ubuntu/.env
             echo "github_token=${{ secrets.github_token }}" | sudo tee -a /home/ubuntu/.env
-            echo "AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}" | sudo tee -a /home/ubuntu/.env\
+            echo "AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}" | sudo tee -a /home/ubuntu/.env
+            echo "EC2_WEB_HOST=${{ secrets.EC2_WEB_HOST }}" | sudo tee -a /home/ubuntu/.env
             echo "JWT_SECRET_KEY=${{ secrets.JWT_SECRET_KEY }}" | sudo tee -a /home/ubuntu/.env
             echo "AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}" | sudo tee -a /home/ubuntu/.env
             echo "DB_URL=${{ secrets.DB_URL }}" | sudo tee -a /home/ubuntu/.env
             echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" | sudo tee -a /home/ubuntu/.env
+            echo "DOCKERHUB_TOKEN=${{ secrets.DOCKERHUB_TOKEN }}" | sudo tee -a /home/ubuntu/.env
             echo "DB_USERNAME=${{ secrets.DB_USERNAME }}" | sudo tee -a /home/ubuntu/.env
             echo "ADMIN_TOKEN=${{ secrets.ADMIN_TOKEN }}" | sudo tee -a /home/ubuntu/.env
             echo "AWS_REGION=${{ secrets.AWS_REGION }}" | sudo tee -a /home/ubuntu/.env
             echo "AWS_SG_ID=${{ secrets.AWS_SG_ID }}" | sudo tee -a /home/ubuntu/.env
             echo "EC2_WEB_SSH_PORT=${{ secrets.EC2_WEB_SSH_PORT }}" | sudo tee -a /home/ubuntu/.env
             echo "REDIS_PORT=${{ secrets.REDIS_PORT }}" | sudo tee -a /home/ubuntu/.env
+            echo "RSA_PRIVATE_KEY_BASE64=${{ secrets.RSA_PRIVATE_KEY_BASE64 }}" | sudo tee -a /home/ubuntu/.env
             
             sudo docker pull ${{ secrets.DOCKERHUB_USERNAME }}/publicclassdev:latest
             sudo docker run -d -p 8080:8080 --name publicclassdev --env-file /home/ubuntu/.env ${{ secrets.DOCKERHUB_USERNAME }}/publicclassdev:latest
