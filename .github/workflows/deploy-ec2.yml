@@ -43,29 +43,10 @@ jobs:
         run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/publicclassdev:latest
 
       - name: Create .env file
+        env:
+          SECRETS_CONTEXT: ${{ toJson(secrets) }}
         run: |
-          echo "REDIS_HOST=${{ secrets.REDIS_HOST }}" > .env
-          echo "EC2_WEB_PASSWORD=${{ secrets.EC2_WEB_PASSWORD }}" >> .env
-          echo "EC2_PRIVATE_KEY=${{ secrets.EC2_PRIVATE_KEY }}" >> .env
-          echo "REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }}" >> .env
-          echo "AWS_S3_BUCKET_NAME=${{ secrets.AWS_S3_BUCKET_NAME }}" >> .env
-          echo "EC2_WEB_USERNAME=${{ secrets.EC2_WEB_USERNAME }}" >> .env
-          echo "DOCKERHUB_PASSWORD=${{ secrets.DOCKERHUB_PASSWORD }}" >> .env
-          echo "DOCKERHUB_USERNAME=${{ secrets.DOCKERHUB_USERNAME }}" >> .env
-          echo "github_token=${{ secrets.github_token }}" >> .env
-          echo "AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}" >> .env
-          echo "EC2_WEB_HOST=${{ secrets.EC2_WEB_HOST }}" >> .env
-          echo "JWT_SECRET_KEY=${{ secrets.JWT_SECRET_KEY }}" >> .env
-          echo "AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}" >> .env
-          echo "DB_URL=${{ secrets.DB_URL }}" >> .env
-          echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" >> .env
-          echo "DOCKERHUB_TOKEN=${{ secrets.DOCKERHUB_TOKEN }}" >> .env
-          echo "DB_USERNAME=${{ secrets.DB_USERNAME }}" >> .env
-          echo "ADMIN_TOKEN=${{ secrets.ADMIN_TOKEN }}" >> .env
-          echo "AWS_REGION=${{ secrets.AWS_REGION }}" >> .env
-          echo "AWS_SG_ID=${{ secrets.AWS_SG_ID }}" >> .env
-          echo "EC2_WEB_SSH_PORT=${{ secrets.EC2_WEB_SSH_PORT }}" >> .env
-          echo "REDIS_PORT=${{ secrets.REDIS_PORT }}" >> .env
+          jq -r 'to_entries|map("\(.key)=\(.value|tostring)")|.[]' <<< "$SECRETS_CONTEXT" > .env
 
       - name: Debug .env file
         run: cat .env || echo ".env file does not exist"
@@ -83,4 +64,4 @@ jobs:
             sudo docker rm publicclassdev
             
             sudo docker pull ${{ secrets.DOCKERHUB_USERNAME }}/publicclassdev:latest
-            sudo docker run -it -d -p 8080:8080 --name publicclassdev --env-file .env ${{ secrets.DOCKERHUB_USERNAME }}/publicclassdev:latest
+            sudo docker run -d -p 8080:8080 --name publicclassdev --env-file /home/ubuntu/.env ${{ secrets.DOCKERHUB_USERNAME }}/publicclassdev:latest
