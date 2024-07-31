@@ -7,4 +7,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface TeamUsersRepository extends JpaRepository<TeamUsers, Long> {
     boolean existsByTeamsAndUsers(Teams teams, Users users);
+    
+    boolean existsByUsers(Users currentUser);
 }
