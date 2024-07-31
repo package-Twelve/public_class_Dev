@@ -9,6 +9,7 @@ import lombok.Getter;
 
 @Getter
 public class CommunitiesResponseDto {
+    Long id;
     String title;
     String content;
     Category category;
@@ -22,18 +23,21 @@ public class CommunitiesResponseDto {
         this.category = category;
     }
 
-    public CommunitiesResponseDto(LocalDateTime createdAt, String title, String content, Category category) {
+    public CommunitiesResponseDto(Long id, LocalDateTime createdAt, String title, String content, Category category) {
+        this.id = id;
         this.title = title;
         this.content = content;
         this.createdAt = createdAt;
         this.category = category;
     }
 
-    public CommunitiesResponseDto(String title, String content, Category category, String name, List<CommunityCommentResponseDto> comments) {
+    public CommunitiesResponseDto(Long id, String title, String content, LocalDateTime createdAt,Category category, String name, List<CommunityCommentResponseDto> comments) {
+        this.id = id;
         this.title = title;
         this.content = content;
         this.category = category;
         this.name = name;
+        this.createdAt = createdAt;
         this.comments = comments;
     }
 }
