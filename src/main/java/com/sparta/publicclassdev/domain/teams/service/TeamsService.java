@@ -26,25 +26,25 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 public class TeamsService {
-
+    
     private final TeamsRepository teamsRepository;
     private final TeamUsersRepository teamUsersRepository;
     private final UsersRepository usersRepository;
     private final ChatRoomsRepository chatRoomsRepository;
     private final ChatRoomUsersRepository chatRoomUsersRepository;
-
+    
     private static final List<String> Modifier = List.of(
         "Agile", "Brave", "Calm", "Daring", "Eager", "Fierce", "Gentle", "Heroic", "Jolly", "Keen"
     );
-
+    
     private static final List<String> Label = List.of(
         "Warriors", "Knights", "Mavericks", "Pioneers", "Rangers", "Samurais", "Titans", "Vikings",
         "Wizards", "Yankees"
     );
-
+    
     private final Random RANDOM = new Random();
     private final ConcurrentLinkedDeque<Users> waitQueue = new ConcurrentLinkedDeque<>();
-
+    
     private String randomTeamName() {
         String teamName;
         do {
@@ -54,40 +54,46 @@ public class TeamsService {
         } while (teamsRepository.existsByName(teamName));
         return teamName;
     }
-
+    
     @Transactional
     public void teamMatch(Users users) {
         waitQueue.add(users);
     }
-
+    
     @Transactional
-    public TeamResponseDto createTeam() {
+    public TeamResponseDto createTeam(Users currentUser) {
+        boolean isUserInTeam = teamUsersRepository.existsByUsers(currentUser);
+        if (isUserInTeam) {
+            throw new CustomException(ErrorCode.USER_ALREADY_TEAM);
+        }
+        
         List<Users> waitUser = new ArrayList<>();
         for (int i = 0; i < 3 && !waitQueue.isEmpty(); i++) {
             waitUser.add(waitQueue.poll());
         }
+        waitUser.add(currentUser);
         Collections.shuffle(waitUser);
-
+        
         Teams teams = Teams.builder()
             .name(randomTeamName())
             .build();
         teamsRepository.save(teams);
-
+        
         ChatRooms chatRooms = ChatRooms.builder()
             .teams(teams)
             .build();
         chatRoomsRepository.save(chatRooms);
-
+        
         List<Users> teamMembers = new ArrayList<>();
         for (Users users : waitUser) {
             teamMembers.add(users);
-
+            
             TeamUsers teamUsers = TeamUsers.builder()
                 .teams(teams)
                 .users(users)
                 .build();
             teamUsersRepository.save(teamUsers);
-
+            
             ChatRoomUsers chatRoomUsers = ChatRoomUsers.builder()
                 .chatRooms(chatRooms)
                 .users(users)
@@ -96,35 +102,34 @@ public class TeamsService {
         }
         return new TeamResponseDto(teams, teamMembers);
     }
-
+    
     public void deleteAllTeams() {
         teamsRepository.deleteAll();
         teamUsersRepository.deleteAll();
     }
-
+    
     @Transactional(readOnly = true)
     public TeamResponseDto getTeamById(Long teamsId, Long usersId) {
         Teams teams = validateTeam(teamsId);
         Users users = validateUser(usersId);
-
+        
         boolean isUserInTeam = teamUsersRepository.existsByTeamsAndUsers(teams, users);
         if (!isUserInTeam) {
             throw new CustomException(ErrorCode.NOT_UNAUTHORIZED);
         }
-
+        
         List<Users> teamMembers = teams.getTeamUsers().stream()
             .map(TeamUsers::getUsers)
             .collect(Collectors.toList());
-
+        
         return new TeamResponseDto(teams, teamMembers);
     }
-
-
+    
     private Teams validateTeam(Long teamsId) {
         return teamsRepository.findById(teamsId)
             .orElseThrow(() -> new CustomException(ErrorCode.TEAM_NOT_FOUND));
     }
-
+    
     private Users validateUser(Long userId) {
         return usersRepository.findById(userId)
             .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
