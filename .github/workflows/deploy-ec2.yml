@@ -9,6 +9,16 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
+      - name: Create .env file
+        env:
+          SECRETS_CONTEXT: ${{ toJson(secrets) }}
+        run: |
+          jq -r 'to_entries|map("\(.key)=\(.value|tostring)")|.[]' <<< "$SECRETS_CONTEXT" > .env
+
+      - name: Debug SECRETS_CONTEXT
+        run:
+          echo "$SECRETS_CONTEXT"
+
       - name: Checkout code
         uses: actions/checkout@v3
 
@@ -42,11 +52,6 @@ jobs:
       - name: Docker Hub Push
         run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/publicclassdev:latest
 
-      - name: Create .env file
-        env:
-          SECRETS_CONTEXT: ${{ toJson(secrets) }}
-        run: |
-          jq -r 'to_entries|map("\(.key)=\(.value|tostring)")|.[]' <<< "$SECRETS_CONTEXT" > .env
 
       - name: Debug .env file
         run: cat .env || echo ".env file does not exist"
