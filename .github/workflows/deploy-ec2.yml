@@ -9,16 +9,6 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Create .env file
-        env:
-          SECRETS_CONTEXT: ${{ toJson(secrets) }}
-        run: |
-          jq -r 'to_entries|map("\(.key)=\(.value|tostring)")|.[]' <<< "$SECRETS_CONTEXT" > .env
-
-      - name: Debug SECRETS_CONTEXT
-        run:
-          echo "$SECRETS_CONTEXT"
-
       - name: Checkout code
         uses: actions/checkout@v3
 
@@ -65,11 +55,42 @@ jobs:
           port: ${{ secrets.EC2_WEB_SSH_PORT }}
           timeout: 60s
           script: |
-            sudo docker stop publicclassdev
-            sudo docker rm publicclassdev
+            # Stop and remove existing container
+            sudo docker stop publicclassdev || true
+            sudo docker rm publicclassdev || true
             
+            # Pull latest Docker image
             sudo docker pull ${{ secrets.DOCKERHUB_USERNAME }}/publicclassdev:latest
-            echo "$SECRETS_CONTEXT" | jq -r 'to_entries|map("\(.key)=\(.value|tostring)")|.[]' > /home/ubuntu/.env
+            
+            # Create .env file with environment variables
+            echo "REDIS_HOST=${{ secrets.REDIS_HOST }}" | sudo tee /home/ubuntu/.env
+            echo "EC2_WEB_PASSWORD=${{ secrets.EC2_WEB_PASSWORD }}" | sudo tee -a /home/ubuntu/.env
+            echo "EC2_PRIVATE_KEY=${{ secrets.EC2_PRIVATE_KEY }}" | sudo tee -a /home/ubuntu/.env
+            echo "REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }}" | sudo tee -a /home/ubuntu/.env
+            echo "AWS_S3_BUCKET_NAME=${{ secrets.AWS_S3_BUCKET_NAME }}" | sudo tee -a /home/ubuntu/.env
+            echo "EC2_WEB_USERNAME=${{ secrets.EC2_WEB_USERNAME }}" | sudo tee -a /home/ubuntu/.env
+            echo "DOCKERHUB_PASSWORD=${{ secrets.DOCKERHUB_PASSWORD }}" | sudo tee -a /home/ubuntu/.env
+            echo "DOCKERHUB_USERNAME=${{ secrets.DOCKERHUB_USERNAME }}" | sudo tee -a /home/ubuntu/.env
+            echo "github_token=${{ secrets.github_token }}" | sudo tee -a /home/ubuntu/.env
+            echo "AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}" | sudo tee -a /home/ubuntu/.env
+            echo "EC2_WEB_HOST=${{ secrets.EC2_WEB_HOST }}" | sudo tee -a /home/ubuntu/.env
+            echo "JWT_SECRET_KEY=${{ secrets.JWT_SECRET_KEY }}" | sudo tee -a /home/ubuntu/.env
+            echo "AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}" | sudo tee -a /home/ubuntu/.env
+            echo "DB_URL=${{ secrets.DB_URL }}" | sudo tee -a /home/ubuntu/.env
+            echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" | sudo tee -a /home/ubuntu/.env
+            echo "DOCKERHUB_TOKEN=${{ secrets.DOCKERHUB_TOKEN }}" | sudo tee -a /home/ubuntu/.env
+            echo "DB_USERNAME=${{ secrets.DB_USERNAME }}" | sudo tee -a /home/ubuntu/.env
+            echo "ADMIN_TOKEN=${{ secrets.ADMIN_TOKEN }}" | sudo tee -a /home/ubuntu/.env
+            echo "AWS_REGION=${{ secrets.AWS_REGION }}" | sudo tee -a /home/ubuntu/.env
+            echo "AWS_SG_ID=${{ secrets.AWS_SG_ID }}" | sudo tee -a /home/ubuntu/.env
+            echo "EC2_WEB_SSH_PORT=${{ secrets.EC2_WEB_SSH_PORT }}" | sudo tee -a /home/ubuntu/.env
+            echo "REDIS_PORT=${{ secrets.REDIS_PORT }}" | sudo tee -a /home/ubuntu/.env
+            
+            # Verify .env file content
+            cat /home/ubuntu/.env
+            
+            # Run the Docker container
             sudo docker run -d -p 8080:8080 --name publicclassdev --env-file /home/ubuntu/.env ${{ secrets.DOCKERHUB_USERNAME }}/publicclassdev:latest
             
+            # Remove old Docker images
             docker images --format "{{.Repository}}:{{.Tag}} {{.ID}}" | grep -v "latest" | awk '{print $2}' | xargs -r docker rmi
