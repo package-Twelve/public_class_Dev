@@ -57,8 +57,8 @@ jobs:
           port: ${{ secrets.EC2_WEB_SSH_PORT }}
           timeout: 60s
           script: |
-            sudo docker stop publicclassdev || true
-            sudo docker rm publicclassdev || true
+            sudo docker stop publicclassdev
+            sudo docker rm publicclassdev
             
             sudo docker pull ${{ secrets.DOCKERHUB_USERNAME }}/publicclassdev:latest
             sudo docker run -it -d -p 8080:8080 --name publicclassdev --env-file .env ${{ secrets.DOCKERHUB_USERNAME }}/publicclassdev:latest
