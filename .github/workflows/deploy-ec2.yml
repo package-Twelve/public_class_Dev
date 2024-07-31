@@ -6,7 +6,7 @@ on:
       - refactor/#81-CI
 
 jobs:
-  build:
+  deploy:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -25,7 +25,7 @@ jobs:
           cache: gradle
 
       - name: Spring Boot Build
-        run: .gradle clean build --exclude-task test
+        run: ./gradlew clean build --exclude-task test
 
       - name: Docker Image Build
         run: docker build -t projectdev/publicclassdev:latest .
@@ -52,7 +52,7 @@ jobs:
 
       - name: Add GitHub IP to AWS
         run: |
-          aws ec2 authorize-security-group-ingress --group-id ${{ secrets.AWS_SG_ID }} --protocol tcp --port 22 --cidr ${{ steps.ip.outputs.ipv4 }}/32: 
+          aws ec2 authorize-security-group-ingress --group-id ${{ secrets.AWS_SG_ID }} --protocol tcp --port 22 --cidr ${{ steps.ip.outputs.ipv4 }}/32:
 
       - name: Create .env file
         env:
