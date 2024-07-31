@@ -9,6 +9,7 @@ import com.sparta.publicclassdev.domain.users.entity.Users;
 import com.sparta.publicclassdev.global.dto.DataResponse;
 import com.sparta.publicclassdev.global.dto.MessageResponse;
 import com.sparta.publicclassdev.global.security.UserDetailsImpl;
+import jakarta.validation.Valid;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.checkerframework.checker.units.qual.C;
@@ -32,7 +33,7 @@ public class CommunitiesController {
     private final CommunitiesService service;
 
     @PostMapping("/community")
-    public ResponseEntity<DataResponse<CommunitiesResponseDto>> createPost(@RequestBody CommunitiesRequestDto requestDto,
+    public ResponseEntity<DataResponse<CommunitiesResponseDto>> createPost(@Valid @RequestBody CommunitiesRequestDto requestDto,
         @AuthenticationPrincipal UserDetailsImpl userDetails) {
         Users user = userDetails.getUser();
         CommunitiesResponseDto responseDto = service.createPost(requestDto, user);

@@ -7,6 +7,7 @@ import com.sparta.publicclassdev.domain.users.entity.Users;
 import com.sparta.publicclassdev.global.dto.DataResponse;
 import com.sparta.publicclassdev.global.dto.MessageResponse;
 import com.sparta.publicclassdev.global.security.UserDetailsImpl;
+import jakarta.validation.Valid;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -30,7 +31,7 @@ public class CommunityCommentsController {
 
     @PostMapping("/community/{communityId}/comments")
     public ResponseEntity<DataResponse<CommunityCommentResponseDto>> createComment
-        (@PathVariable Long communityId, @RequestBody CommunityCommentsRequestDto requestDto,
+        (@PathVariable Long communityId, @Valid @RequestBody CommunityCommentsRequestDto requestDto,
             @AuthenticationPrincipal UserDetailsImpl userDetails) {
         Users user = userDetails.getUser();
         CommunityCommentResponseDto responseDto = service.createComment(communityId, requestDto,
@@ -42,7 +43,7 @@ public class CommunityCommentsController {
     @PutMapping("/community/{communityId}/comments/{commentId}")
     public ResponseEntity<DataResponse<CommunityCommentResponseDto>> updateComment
         (@PathVariable Long communityId, @PathVariable Long commentId,
-            @RequestBody CommunityCommentsRequestDto requestDto,
+            @Valid @RequestBody CommunityCommentsRequestDto requestDto,
             @AuthenticationPrincipal UserDetailsImpl userDetails) {
         Users user = userDetails.getUser();
 
