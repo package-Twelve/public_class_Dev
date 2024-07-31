@@ -24,6 +24,9 @@ jobs:
           distribution: 'temurin'
           cache: gradle
 
+      - name: Make Gradle Wrapper executable
+        run: chmod +x ./gradlew
+
       - name: Spring Boot Build
         run: ./gradlew clean build --exclude-task test
 
