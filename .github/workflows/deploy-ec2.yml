@@ -64,4 +64,7 @@ jobs:
             sudo docker rm publicclassdev
             
             sudo docker pull ${{ secrets.DOCKERHUB_USERNAME }}/publicclassdev:latest
+            echo "$SECRETS_CONTEXT" | jq -r 'to_entries|map("\(.key)=\(.value|tostring)")|.[]' > /home/ubuntu/.env
             sudo docker run -d -p 8080:8080 --name publicclassdev --env-file /home/ubuntu/.env ${{ secrets.DOCKERHUB_USERNAME }}/publicclassdev:latest
+            
+            docker images --format "{{.Repository}}:{{.Tag}} {{.ID}}" | grep -v "latest" | awk '{print $2}' | xargs -r docker rmi
