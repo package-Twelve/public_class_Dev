@@ -57,6 +57,10 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-cache'
 }
 
+jar {
+    enabled = false
+}
+
 tasks.named('test') {
     useJUnitPlatform()
     enabled = false // CD를 우선 구성하기 위해
