@@ -31,7 +31,7 @@ jobs:
         run: ./gradlew clean build --exclude-task test
 
       - name: Docker Image Build
-        run: docker build -t projectdev/publicclassdev:latest .
+        run: docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/publicclassdev:latest .
 
       - name: Docker Login
         uses: docker/login-action@v2
@@ -40,7 +40,7 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Docker Hub Push
-        run: docker push projectdev/publicclassdev:latest
+        run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/publicclassdev:latest
 
       - name: Get GitHub IP
         id: ip
@@ -55,7 +55,7 @@ jobs:
 
       - name: Add GitHub IP to AWS
         run: |
-          aws ec2 authorize-security-group-ingress --group-id ${{ secrets.AWS_SG_ID }} --protocol tcp --port 22 --cidr ${{ steps.ip.outputs.ipv4 }}/32:
+          aws ec2 authorize-security-group-ingress --group-id ${{ secrets.AWS_SG_ID }} --protocol tcp --port 22 --cidr ${{ steps.ip.outputs.ipv4 }}/32
 
       - name: Create .env file
         env:
@@ -72,12 +72,12 @@ jobs:
           port: ${{ secrets.EC2_WEB_SSH_PORT }}
           timeout: 60s
           script: |
-            sudo docker stop projectdev/publicclassdev || true
-            sudo docker rm  projectdev/publicclassdev || true
+            sudo docker stop publicclassdev || true
+            sudo docker rm publicclassdev || true
             
-            sudo docker pull projectdev/publicclassdev:latest
-            sudo docker run -it -d -p 8080:8080 --name publicclassdev --env-file .env projectdev/publicclassdev:latest
+            sudo docker pull ${{ secrets.DOCKERHUB_USERNAME }}/publicclassdev:latest
+            sudo docker run -it -d -p 8080:8080 --name publicclassdev --env-file .env ${{ secrets.DOCKERHUB_USERNAME }}/publicclassdev:latest
 
       - name: Remove IP FROM Security Group
         run: |
-          aws ec2 revoke-security-group-ingress --group-id ${{ secrets.AWS_SG_ID }} --protocol tcp --port 22 --cidr ${{ steps.ip.outputs.ipv4 }}/32:
+          aws ec2 revoke-security-group-ingress --group-id ${{ secrets.AWS_SG_ID }} --protocol tcp --port 22 --cidr ${{ steps.ip.outputs.ipv4 }}/32
