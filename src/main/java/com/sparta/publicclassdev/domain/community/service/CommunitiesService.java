@@ -86,17 +86,17 @@ public class CommunitiesService {
 
     public List<CommunitiesResponseDto> findPosts() {
         List<Communities> postList = repository.findAll();
-        return postList.stream().map(communities -> new CommunitiesResponseDto(communities.getCreatedAt(), communities.getTitle(), communities.getContent(), communities.getCategory()))
+        return postList.stream().map(communities -> new CommunitiesResponseDto(communities.getId(), communities.getCreatedAt(), communities.getTitle(), communities.getContent(), communities.getCategory()))
             .collect(Collectors.toList());
     }
 
     public CommunitiesResponseDto findPost(Long communityId) {
         Communities community = checkCommunity(communityId);
         List<CommunityComments> commentsList = community.getCommentsList();
-        List<CommunityCommentResponseDto> responseDto = commentsList.stream().map(communityComments -> new CommunityCommentResponseDto(communityComments.getContent()))
+        List<CommunityCommentResponseDto> responseDto = commentsList.stream().map(communityComments -> new CommunityCommentResponseDto(communityComments.getContent(), communityComments.getId()))
             .toList();
-
-        return new CommunitiesResponseDto(community.getTitle(), community.getContent(), community.getCategory(), community.getUser().getName(), responseDto);
+        log.info(String.valueOf(community.getUser().getName()));
+        return new CommunitiesResponseDto(community.getId(), community.getTitle(), community.getContent(), community.getCreatedAt(), community.getCategory(), community.getUser().getName(), responseDto);
     }
     public Communities checkCommunity(Long communityId){
         return repository.findById(communityId).orElseThrow(
