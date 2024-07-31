@@ -38,11 +38,18 @@ public class TeamsController {
             .body(new DataResponse<>(201, "팀 생성 성공", response));
     }
     
+    @GetMapping("/users/{usersId}")
+    public ResponseEntity<DataResponse<TeamResponseDto>> getTeamByUserId(
+        @AuthenticationPrincipal UserDetailsImpl userDetails, @PathVariable Long usersId) {
+        TeamResponseDto responseDto = teamsService.getTeamByUserId(usersId);
+        return ResponseEntity.status(HttpStatus.OK)
+            .body(new DataResponse<>(200, "팀 조회 성공", responseDto));
+    }
+    
     @GetMapping("/{teamsId}")
     public ResponseEntity<DataResponse<TeamResponseDto>> getTeamById(
-        @AuthenticationPrincipal UserDetailsImpl userDetails, @PathVariable Long teamsId) {
-                                 Long usersId = userDetails.getUser().getId();
-        TeamResponseDto responseDto = teamsService.getTeamById(teamsId, usersId);
+        @PathVariable Long teamsId) {
+        TeamResponseDto responseDto = teamsService.getTeamById(teamsId);
         return ResponseEntity.status(HttpStatus.OK)
             .body(new DataResponse<>(200, "팀 조회 성공", responseDto));
     }

@@ -64,7 +64,7 @@ public class TeamsService {
     public TeamResponseDto createTeam(Users currentUser) {
         boolean isUserInTeam = teamUsersRepository.existsByUsers(currentUser);
         if (isUserInTeam) {
-            throw new CustomException(ErrorCode.USER_ALREADY_TEAM);
+            throw new CustomException(ErrorCode.USER_NOT_TEAM);
         }
         
         List<Users> waitUser = new ArrayList<>();
@@ -104,19 +104,22 @@ public class TeamsService {
     }
     
     public void deleteAllTeams() {
-        teamsRepository.deleteAll();
-        teamUsersRepository.deleteAll();
+        List<Teams> allTeams = teamsRepository.findAll();
+        for (Teams teams : allTeams) {
+            chatRoomsRepository.deleteAllByTeamsId(teams.getId());
+            teamsRepository.deleteAll();
+            teamUsersRepository.deleteAll();
+        }
     }
     
     @Transactional(readOnly = true)
-    public TeamResponseDto getTeamById(Long teamsId, Long usersId) {
-        Teams teams = validateTeam(teamsId);
+    public TeamResponseDto getTeamByUserId(Long usersId) {
         Users users = validateUser(usersId);
         
-        boolean isUserInTeam = teamUsersRepository.existsByTeamsAndUsers(teams, users);
-        if (!isUserInTeam) {
-            throw new CustomException(ErrorCode.NOT_UNAUTHORIZED);
-        }
+        TeamUsers teamUser = teamUsersRepository.findByUsers(users)
+            .orElseThrow(() -> new CustomException(ErrorCode.TEAM_NOT_FOUND));
+        
+        Teams teams = teamUser.getTeams();
         
         List<Users> teamMembers = teams.getTeamUsers().stream()
             .map(TeamUsers::getUsers)
@@ -125,13 +128,20 @@ public class TeamsService {
         return new TeamResponseDto(teams, teamMembers);
     }
     
-    private Teams validateTeam(Long teamsId) {
-        return teamsRepository.findById(teamsId)
-            .orElseThrow(() -> new CustomException(ErrorCode.TEAM_NOT_FOUND));
-    }
-    
     private Users validateUser(Long userId) {
         return usersRepository.findById(userId)
             .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+    }
+    
+    @Transactional(readOnly = true)
+    public TeamResponseDto getTeamById(Long teamsId) {
+        Teams teams = teamsRepository.findById(teamsId)
+            .orElseThrow(() -> new CustomException(ErrorCode.TEAM_NOT_FOUND));
+        
+        List<Users> teamMembers = teams.getTeamUsers().stream()
+            .map(TeamUsers::getUsers)
+            .collect(Collectors.toList());
+        
+        return new TeamResponseDto(teams, teamMembers);
     }
 }
