@@ -55,12 +55,8 @@ jobs:
           port: ${{ secrets.EC2_WEB_SSH_PORT }}
           timeout: 60s
           script: |
-            # Stop and remove existing container
             sudo docker stop publicclassdev || true
             sudo docker rm publicclassdev || true
-            
-            # Pull latest Docker image
-            sudo docker pull ${{ secrets.DOCKERHUB_USERNAME }}/publicclassdev:latest
             
             # Create .env file with environment variables
             echo "REDIS_HOST=${{ secrets.REDIS_HOST }}" | sudo tee /home/ubuntu/.env
@@ -86,11 +82,7 @@ jobs:
             echo "EC2_WEB_SSH_PORT=${{ secrets.EC2_WEB_SSH_PORT }}" | sudo tee -a /home/ubuntu/.env
             echo "REDIS_PORT=${{ secrets.REDIS_PORT }}" | sudo tee -a /home/ubuntu/.env
             
-            # Verify .env file content
-            cat /home/ubuntu/.env
-            
-            # Run the Docker container
+            sudo docker pull ${{ secrets.DOCKERHUB_USERNAME }}/publicclassdev:latest
             sudo docker run -d -p 8080:8080 --name publicclassdev --env-file /home/ubuntu/.env ${{ secrets.DOCKERHUB_USERNAME }}/publicclassdev:latest
             
-            # Remove old Docker images
             docker images --format "{{.Repository}}:{{.Tag}} {{.ID}}" | grep -v "latest" | awk '{print $2}' | xargs -r docker rmi
