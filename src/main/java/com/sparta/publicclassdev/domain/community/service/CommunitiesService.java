@@ -86,7 +86,7 @@ public class CommunitiesService {
 
     public List<CommunitiesResponseDto> findPosts() {
         List<Communities> postList = repository.findAll();
-        return postList.stream().map(communities -> new CommunitiesResponseDto(communities.getTitle(), communities.getContent(), communities.getCategory()))
+        return postList.stream().map(communities -> new CommunitiesResponseDto(communities.getCreatedAt(), communities.getTitle(), communities.getContent(), communities.getCategory()))
             .collect(Collectors.toList());
     }
 
@@ -106,9 +106,8 @@ public class CommunitiesService {
     }
 
 
-    public List<CommunitiesResponseDto> searchPost(String keyword, int page) {
-        Pageable pageable = PageRequest.of(page, 10);
-        Page<Communities> communityPage = repository.findByTitleContainingIgnoreCase(keyword, pageable);
+    public List<CommunitiesResponseDto> searchPost(String keyword) {
+        List<Communities> communityPage = repository.findByTitleContainingIgnoreCase(keyword);
         Long currentTime = System.currentTimeMillis();
 
         if(!communityPage.isEmpty()){
@@ -125,7 +124,7 @@ public class CommunitiesService {
     public List<CommunitiesRankDto> rank() {
         ZSetOperations<String, String> zSetOperations = redisTemplate.opsForZSet();
 
-        Set<ZSetOperations.TypedTuple<String>> typedTuples = zSetOperations.reverseRangeByScoreWithScores("searchRank", 0, 4);
+        Set<ZSetOperations.TypedTuple<String>> typedTuples = zSetOperations.reverseRangeWithScores("searchRank", 0, 4);
 
         return typedTuples.stream().map(typedTuple -> new CommunitiesRankDto(typedTuple.getValue())).toList();
     }

@@ -9,6 +9,7 @@ import com.sparta.publicclassdev.domain.users.entity.Users;
 import com.sparta.publicclassdev.global.dto.DataResponse;
 import com.sparta.publicclassdev.global.dto.MessageResponse;
 import com.sparta.publicclassdev.global.security.UserDetailsImpl;
+import jakarta.validation.Valid;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.checkerframework.checker.units.qual.C;
@@ -32,7 +33,7 @@ public class CommunitiesController {
     private final CommunitiesService service;
 
     @PostMapping("/community")
-    public ResponseEntity<DataResponse<CommunitiesResponseDto>> createPost(@RequestBody CommunitiesRequestDto requestDto,
+    public ResponseEntity<DataResponse<CommunitiesResponseDto>> createPost(@Valid @RequestBody CommunitiesRequestDto requestDto,
         @AuthenticationPrincipal UserDetailsImpl userDetails) {
         Users user = userDetails.getUser();
         CommunitiesResponseDto responseDto = service.createPost(requestDto, user);
@@ -68,8 +69,8 @@ public class CommunitiesController {
 
     @GetMapping("/community/search")
     public ResponseEntity<DataResponse<List<CommunitiesResponseDto>>> searchPost
-        (@RequestParam("keyword") String keyword, @RequestParam("page") int page){
-        List<CommunitiesResponseDto> responseDto = service.searchPost(keyword, page);
+        (@RequestParam("keyword") String keyword){
+        List<CommunitiesResponseDto> responseDto = service.searchPost(keyword);
         return ResponseEntity.status(HttpStatus.OK).body(new DataResponse<>(HttpStatus.OK.value(), " 조회 완료", responseDto));
     }
 

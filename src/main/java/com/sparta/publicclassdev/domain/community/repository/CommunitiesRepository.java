@@ -12,5 +12,5 @@ public interface CommunitiesRepository extends JpaRepository<Communities, Long> 
     @Query("select c from Communities c where c.user = :user order by c.modifiedAt desc limit 5")
     List<Communities> findPostByUserLimit5(Users user);
 
-    Page<Communities> findByTitleContainingIgnoreCase(String keyword, Pageable pageable);
+    List<Communities> findByTitleContainingIgnoreCase(String keyword);
 }
