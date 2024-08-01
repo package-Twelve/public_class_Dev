@@ -100,7 +100,7 @@ public class UsersService {
     public ProfileResponseDto getProfile(Users user) {
         List<Communities> recentCommunities = communitiesRepository.findPostByUserLimit5(user);
         List<CommunitiesResponseDto> recentResponseDto = recentCommunities.stream().map(
-            (communities) -> new CommunitiesResponseDto(communities.getTitle(), communities.getContent(), communities.getCategory()))
+            (communities) -> new CommunitiesResponseDto(communities.getId(), communities.getCreatedAt(), communities.getTitle(), communities.getContent(), communities.getCategory()))
             .toList();
         return new ProfileResponseDto(user, recentResponseDto);
     }
