@@ -1,6 +1,6 @@
 package com.sparta.publicclassdev.domain.communitycomments.entity;
 
-import com.sparta.publicclassdev.domain.community.entity.Communities;
+import com.sparta.publicclassdev.domain.communities.entity.Communities;
 import com.sparta.publicclassdev.domain.users.entity.Users;
 import com.sparta.publicclassdev.global.entity.Timestamped;
 import jakarta.persistence.Entity;

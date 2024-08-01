@@ -1,6 +1,6 @@
-package com.sparta.publicclassdev.domain.community.dto;
+package com.sparta.publicclassdev.domain.communities.dto;
 
-import com.sparta.publicclassdev.domain.community.entity.Communities.Category;
+import com.sparta.publicclassdev.domain.communities.entity.Communities.Category;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;

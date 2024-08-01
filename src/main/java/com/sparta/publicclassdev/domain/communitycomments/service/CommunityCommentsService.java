@@ -1,8 +1,7 @@
 package com.sparta.publicclassdev.domain.communitycomments.service;
 
-import com.sparta.publicclassdev.domain.community.dto.CommunitiesResponseDto;
-import com.sparta.publicclassdev.domain.community.entity.Communities;
-import com.sparta.publicclassdev.domain.community.repository.CommunitiesRepository;
+import com.sparta.publicclassdev.domain.communities.entity.Communities;
+import com.sparta.publicclassdev.domain.communities.repository.CommunitiesRepository;
 import com.sparta.publicclassdev.domain.communitycomments.dto.CommunityCommentResponseDto;
 import com.sparta.publicclassdev.domain.communitycomments.dto.CommunityCommentsRequestDto;
 import com.sparta.publicclassdev.domain.communitycomments.entity.CommunityComments;
