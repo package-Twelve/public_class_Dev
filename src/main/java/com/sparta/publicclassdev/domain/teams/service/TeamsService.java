@@ -66,8 +66,9 @@ public class TeamsService {
     }
     
     @Transactional
-    public void teamMatch(Users users) {
+    public TeamResponseDto teamMatch(Users users) {
         waitQueue.add(users);
+        return createTeam(users);
     }
     
     @Transactional
@@ -98,19 +99,19 @@ public class TeamsService {
         chatRoomsRepository.save(chatRooms);
         
         List<Users> teamMembers = new ArrayList<>();
-        for (Users users : waitUser) {
-            if (!teamUsersRepository.existsByUsers(users)) {
-                teamMembers.add(users);
+        for (Users user : waitUser) {
+            if (!teamUsersRepository.existsByUsers(user)) {
+                teamMembers.add(user);
                 
                 TeamUsers teamUsers = TeamUsers.builder()
                     .teams(teams)
-                    .users(users)
+                    .users(user)
                     .build();
                 teamUsersRepository.save(teamUsers);
                 
                 ChatRoomUsers chatRoomUsers = ChatRoomUsers.builder()
                     .chatRooms(chatRooms)
-                    .users(users)
+                    .users(user)
                     .build();
                 chatRoomUsersRepository.save(chatRoomUsers);
             }

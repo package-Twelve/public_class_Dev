@@ -23,11 +23,11 @@ public class TeamsController {
     private final TeamsService teamsService;
     
     @PostMapping("/match")
-    public ResponseEntity<MessageResponse> applyMatch(
+    public ResponseEntity<DataResponse<TeamResponseDto>> applyMatch(
         @AuthenticationPrincipal UserDetailsImpl userDetails) {
-        teamsService.teamMatch(userDetails.getUser());
+        TeamResponseDto teamResponse = teamsService.teamMatch(userDetails.getUser());
         return ResponseEntity.status(HttpStatus.OK)
-            .body(new MessageResponse(200, "팀 매칭 성공"));
+            .body(new DataResponse<>(200, "팀 매칭 성공", teamResponse));
     }
     
     @PostMapping("/create")

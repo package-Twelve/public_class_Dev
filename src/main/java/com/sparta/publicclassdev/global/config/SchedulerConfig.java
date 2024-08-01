@@ -19,16 +19,7 @@ public class SchedulerConfig {
 
     private final TeamsService teamsService;
     private final WinnersService winnersService;
-    
-    @PostConstruct
-    public void init() {
-        log.info("Executing initial dailyWinners at {}", LocalDateTime.now());
-        executeDailyWinners();
-        
-        log.info("Executing initial deleteTeamsMidnight at {}", LocalDateTime.now());
-        executeDeleteTeamsMidnight();
-    }
-    
+
     @Scheduled(cron = "0 0 0 * * ?")
     public void dailyWinners() {
         log.info("Executing dailyWinners at {}", LocalDateTime.now());
@@ -39,15 +30,5 @@ public class SchedulerConfig {
     public void deleteTeamsMidnight() {
         log.info("Executing deleteTeamsMidnight at {}", LocalDateTime.now());
         teamsService.deleteAllTeams();
-    }
-    
-    @Transactional
-    public void executeDailyWinners() {
-        dailyWinners();
-    }
-    
-    @Transactional
-    public void executeDeleteTeamsMidnight() {
-        deleteTeamsMidnight();
     }
 }
