@@ -16,6 +16,10 @@ import com.sparta.publicclassdev.domain.winners.repository.WinnersRepository;
 import com.sparta.publicclassdev.global.exception.CustomException;
 import com.sparta.publicclassdev.global.exception.ErrorCode;
 import jakarta.persistence.EntityManager;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -23,9 +27,6 @@ import java.util.Random;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -64,28 +65,21 @@ public class TeamsService {
     }
     
     @Transactional
-    public void addWaitQueue(Users user) {
+    public TeamResponseDto createAndMatchTeam(String email) {
+        Users user = validateUserByEmail(email);
         checkUserInTeam(user);
+        
+        List<Users> waitUser = new ArrayList<>();
         lock.lock();
         try {
             if (!waitQueue.contains(user)) {
                 waitQueue.add(user);
             }
-        } finally {
-            lock.unlock();
-        }
-    }
-    
-    
-    @Transactional
-    public TeamResponseDto createTeam() {
-        List<Users> waitUser = new ArrayList<>();
-        lock.lock();
-        try {
+            
             for (int i = 0; i < 3 && !waitQueue.isEmpty(); i++) {
-                Users user = waitQueue.poll();
-                if (user != null && !teamUsersRepository.existsByUsers(user)) {
-                    waitUser.add(user);
+                Users waitingUser = waitQueue.poll();
+                if (waitingUser != null && !teamUsersRepository.existsByUsers(waitingUser)) {
+                    waitUser.add(waitingUser);
                 }
             }
         } finally {
@@ -109,19 +103,19 @@ public class TeamsService {
         chatRoomsRepository.save(chatRooms);
         
         List<Users> teamMembers = new ArrayList<>();
-        for (Users user : waitUser) {
-            if (!teamUsersRepository.existsByUsers(user)) {
-                teamMembers.add(user);
+        for (Users waitingUser : waitUser) {
+            if (!teamUsersRepository.existsByUsers(waitingUser)) {
+                teamMembers.add(waitingUser);
                 
                 TeamUsers teamUsers = TeamUsers.builder()
                     .teams(teams)
-                    .users(user)
+                    .users(waitingUser)
                     .build();
                 teamUsersRepository.save(teamUsers);
                 
                 ChatRoomUsers chatRoomUsers = ChatRoomUsers.builder()
                     .chatRooms(chatRooms)
-                    .users(user)
+                    .users(waitingUser)
                     .build();
                 chatRoomUsersRepository.save(chatRoomUsers);
             }
@@ -135,31 +129,13 @@ public class TeamsService {
         }
     }
     
-    @Transactional
-    public void deleteAllTeams() {
-        entityManager.createNativeQuery("SET FOREIGN_KEY_CHECKS = 0").executeUpdate();
-        
-        List<Teams> allTeams = teamsRepository.findAll();
-        for (Teams teams : allTeams) {
-            chatRoomsRepository.deleteAllByTeamsId(teams.getId());
-            codeRunsRepository.deleteAllByTeams(teams);
-            teamUsersRepository.deleteAllByTeams(teams);
-            winnersRepository.deleteAllByTeams(teams);
-            teamsRepository.delete(teams);
-        }
-        
-        resetAutoIncrementColumns();
-        
-        entityManager.createNativeQuery("SET FOREIGN_KEY_CHECKS = 1").executeUpdate();
-    }
-    
     @Transactional(readOnly = true)
     public TeamResponseDto getTeamByUserEmail(String email) {
         Users users = validateUserByEmail(email);
         
         List<TeamUsers> teamUsersList = teamUsersRepository.findByUsers(users);
         if (teamUsersList.isEmpty()) {
-            throw new CustomException(ErrorCode.USER_ALREADY_TEAM);
+            throw new CustomException(ErrorCode.USER_NOT_TEAM);
         }
         
         TeamUsers teamUser = teamUsersList.get(0);
@@ -190,9 +166,27 @@ public class TeamsService {
     }
     
     @Transactional
+    public void deleteAllTeams() {
+        entityManager.createNativeQuery("SET FOREIGN_KEY_CHECKS = 0").executeUpdate();
+        
+        List<Teams> allTeams = teamsRepository.findAll();
+        for (Teams teams : allTeams) {
+            chatRoomsRepository.deleteAllByTeamsId(teams.getId());
+            codeRunsRepository.deleteAllByTeams(teams);
+            teamUsersRepository.deleteAllByTeams(teams);
+            winnersRepository.deleteAllByTeams(teams);
+            teamsRepository.delete(teams);
+        }
+        
+        resetAutoIncrementColumns();
+        
+        entityManager.createNativeQuery("SET FOREIGN_KEY_CHECKS = 1").executeUpdate();
+    }
+    
+    @Transactional
     public void resetAutoIncrementColumns() {
         entityManager.createNativeQuery("ALTER TABLE teams AUTO_INCREMENT = 1").executeUpdate();
-    entityManager.createNativeQuery("ALTER TABLE team_users AUTO_INCREMENT = 1").executeUpdate();
+        entityManager.createNativeQuery("ALTER TABLE team_users AUTO_INCREMENT = 1").executeUpdate();
         entityManager.createNativeQuery("ALTER TABLE chatrooms AUTO_INCREMENT = 1").executeUpdate();
         entityManager.createNativeQuery("ALTER TABLE coderuns AUTO_INCREMENT = 1").executeUpdate();
         entityManager.createNativeQuery("ALTER TABLE chatroomusers AUTO_INCREMENT = 1").executeUpdate();
