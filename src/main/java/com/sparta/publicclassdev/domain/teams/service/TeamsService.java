@@ -2,11 +2,8 @@ package com.sparta.publicclassdev.domain.teams.service;
 
 import com.sparta.publicclassdev.domain.chatrooms.entity.ChatRoomUsers;
 import com.sparta.publicclassdev.domain.chatrooms.entity.ChatRooms;
-import com.sparta.publicclassdev.domain.chatrooms.entity.Messages;
 import com.sparta.publicclassdev.domain.chatrooms.repository.ChatRoomUsersRepository;
 import com.sparta.publicclassdev.domain.chatrooms.repository.ChatRoomsRepository;
-import com.sparta.publicclassdev.domain.chatrooms.repository.MessagesRepository;
-import com.sparta.publicclassdev.domain.coderuns.entity.CodeRuns;
 import com.sparta.publicclassdev.domain.coderuns.repository.CodeRunsRepository;
 import com.sparta.publicclassdev.domain.teams.dto.TeamResponseDto;
 import com.sparta.publicclassdev.domain.teams.entity.TeamUsers;
@@ -15,7 +12,6 @@ import com.sparta.publicclassdev.domain.teams.repository.TeamUsersRepository;
 import com.sparta.publicclassdev.domain.teams.repository.TeamsRepository;
 import com.sparta.publicclassdev.domain.users.entity.Users;
 import com.sparta.publicclassdev.domain.users.repository.UsersRepository;
-import com.sparta.publicclassdev.domain.winners.entity.Winners;
 import com.sparta.publicclassdev.domain.winners.repository.WinnersRepository;
 import com.sparta.publicclassdev.global.exception.CustomException;
 import com.sparta.publicclassdev.global.exception.ErrorCode;
@@ -26,6 +22,7 @@ import java.util.List;
 import java.util.Random;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.stream.Collectors;
+import java.util.concurrent.locks.ReentrantLock;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -54,6 +51,7 @@ public class TeamsService {
     
     private final Random RANDOM = new Random();
     private final ConcurrentLinkedDeque<Users> waitQueue = new ConcurrentLinkedDeque<>();
+    private final ReentrantLock lock = new ReentrantLock();
     
     private String randomTeamName() {
         String teamName;
@@ -67,27 +65,32 @@ public class TeamsService {
     
     @Transactional
     public TeamResponseDto teamMatch(Users users) {
-        boolean isUserInTeam = teamUsersRepository.existsByUsers(users);
-        if (isUserInTeam) {
-            throw new CustomException(ErrorCode.USER_ALREADY_TEAM);
+        checkUserInTeam(users);
+        lock.lock();
+        try {
+            if (!waitQueue.contains(users)) {
+                waitQueue.add(users);
+            }
+            return createTeam(users);
+        } finally {
+            lock.unlock();
         }
-        waitQueue.add(users);
-        return createTeam(users);
     }
     
     @Transactional
     public TeamResponseDto createTeam(Users currentUser) {
-        boolean isUserInTeam = teamUsersRepository.existsByUsers(currentUser);
-        if (isUserInTeam) {
-            throw new CustomException(ErrorCode.USER_ALREADY_TEAM);
-        }
-        
+        checkUserInTeam(currentUser);
         List<Users> waitUser = new ArrayList<>();
-        for (int i = 0; i < 3 && !waitQueue.isEmpty(); i++) {
-            Users user = waitQueue.poll();
-            if (!teamUsersRepository.existsByUsers(user)) {
-                waitUser.add(user);
+        lock.lock();
+        try {
+            for (int i = 0; i < 3 && !waitQueue.isEmpty(); i++) {
+                Users user = waitQueue.poll();
+                if (!teamUsersRepository.existsByUsers(user)) {
+                    waitUser.add(user);
+                }
             }
+        } finally {
+            lock.unlock();
         }
         waitUser.add(currentUser);
         Collections.shuffle(waitUser);
@@ -121,6 +124,12 @@ public class TeamsService {
             }
         }
         return new TeamResponseDto(teams, teamMembers);
+    }
+    
+    private void checkUserInTeam(Users users) {
+        if (teamUsersRepository.existsByUsers(users)) {
+            throw new CustomException(ErrorCode.USER_ALREADY_TEAM);
+        }
     }
     
     @Transactional

@@ -42,7 +42,7 @@ public class TeamsController {
     @GetMapping("/myteam")
     public ResponseEntity<DataResponse<TeamResponseDto>> getTeamByCurrentUser(
         @AuthenticationPrincipal UserDetailsImpl userDetails) {
-        TeamResponseDto responseDto = teamsService.getTeamByUserEmail(userDetails.getUsername());
+        TeamResponseDto responseDto = teamsService.getTeamByUserEmail(userDetails.getEmail());
         return ResponseEntity.status(HttpStatus.OK)
             .body(new DataResponse<>(200, "팀 조회 성공", responseDto));
     }
