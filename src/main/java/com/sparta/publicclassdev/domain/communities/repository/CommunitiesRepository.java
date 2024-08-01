@@ -1,10 +1,8 @@
-package com.sparta.publicclassdev.domain.community.repository;
+package com.sparta.publicclassdev.domain.communities.repository;
 
-import com.sparta.publicclassdev.domain.community.entity.Communities;
+import com.sparta.publicclassdev.domain.communities.entity.Communities;
 import com.sparta.publicclassdev.domain.users.entity.Users;
 import java.util.List;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
