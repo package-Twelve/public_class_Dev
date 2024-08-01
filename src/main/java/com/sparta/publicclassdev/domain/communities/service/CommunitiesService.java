@@ -1,11 +1,11 @@
-package com.sparta.publicclassdev.domain.community.service;
+package com.sparta.publicclassdev.domain.communities.service;
 
-import com.sparta.publicclassdev.domain.community.dto.CommunitiesRankDto;
-import com.sparta.publicclassdev.domain.community.dto.CommunitiesRequestDto;
-import com.sparta.publicclassdev.domain.community.dto.CommunitiesResponseDto;
-import com.sparta.publicclassdev.domain.community.dto.CommunitiesUpdateRequestDto;
-import com.sparta.publicclassdev.domain.community.entity.Communities;
-import com.sparta.publicclassdev.domain.community.repository.CommunitiesRepository;
+import com.sparta.publicclassdev.domain.communities.dto.CommunitiesRankDto;
+import com.sparta.publicclassdev.domain.communities.dto.CommunitiesRequestDto;
+import com.sparta.publicclassdev.domain.communities.dto.CommunitiesResponseDto;
+import com.sparta.publicclassdev.domain.communities.dto.CommunitiesUpdateRequestDto;
+import com.sparta.publicclassdev.domain.communities.entity.Communities;
+import com.sparta.publicclassdev.domain.communities.repository.CommunitiesRepository;
 import com.sparta.publicclassdev.domain.communitycomments.dto.CommunityCommentResponseDto;
 import com.sparta.publicclassdev.domain.communitycomments.entity.CommunityComments;
 import com.sparta.publicclassdev.domain.users.entity.Users;
@@ -20,9 +20,6 @@ import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ZSetOperations;
 import org.springframework.stereotype.Service;
@@ -33,7 +30,7 @@ public class CommunitiesService {
 
     private static final Logger log = LoggerFactory.getLogger(CommunitiesService.class);
     private final CommunitiesRepository repository;
-    private final RedisTemplate<String, String> redisTemplate;
+    private final RedisTemplate<String, Object> redisTemplate;
 
     @PostConstruct
     public void cleanUpOldSearchData(){
@@ -41,9 +38,9 @@ public class CommunitiesService {
         String key = "searchRank";
         long currentTime = System.currentTimeMillis();
 
-        ZSetOperations<String, String> zSetOperations = redisTemplate.opsForZSet();
+        ZSetOperations<String, Object> zSetOperations = redisTemplate.opsForZSet();
 
-        Set<String> rankAll = zSetOperations.reverseRange(key, 0, -1);
+        Set<Object> rankAll = zSetOperations.reverseRange(key, 0, -1);
         if(rankAll != null && !rankAll.isEmpty()){
             deletePastKeyword(rankAll, currentTime);
         }
@@ -117,23 +114,24 @@ public class CommunitiesService {
         }
 
         return communityPage.stream()
-            .map(communities -> new CommunitiesResponseDto(communities.getTitle(), communities.getContent(), communities.getCategory()))
+            .map(communities -> new CommunitiesResponseDto(communities.getId(), communities.getCreatedAt(), communities.getTitle(), communities.getContent(), communities.getCategory()))
             .collect(Collectors.toList());
     }
 
     public List<CommunitiesRankDto> rank() {
-        ZSetOperations<String, String> zSetOperations = redisTemplate.opsForZSet();
+        ZSetOperations<String, Object> zSetOperations = redisTemplate.opsForZSet();
 
-        Set<ZSetOperations.TypedTuple<String>> typedTuples = zSetOperations.reverseRangeWithScores("searchRank", 0, 4);
+        Set<ZSetOperations.TypedTuple<Object>> typedTuples = zSetOperations.reverseRangeWithScores("searchRank", 0, 4);
 
-        return typedTuples.stream().map(typedTuple -> new CommunitiesRankDto(typedTuple.getValue())).toList();
+        return typedTuples.stream().map(typedTuple -> new CommunitiesRankDto(
+            (String) typedTuple.getValue())).toList();
     }
 
-    public void deletePastKeyword(Set<String> keywordList, long currentTime) {
+    public void deletePastKeyword(Set<Object> keywordList, long currentTime) {
 
-        ZSetOperations<String, String> zSetOperations = redisTemplate.opsForZSet();
+        ZSetOperations<String, Object> zSetOperations = redisTemplate.opsForZSet();
 
-        for (String keywords : keywordList) {
+        for (Object keywords : keywordList) {
             String validTimeObj = (String) redisTemplate.opsForHash().get("keyword_data", keywords);
 
             if(validTimeObj != null){

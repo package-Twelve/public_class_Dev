@@ -1,9 +1,9 @@
 package com.sparta.publicclassdev.domain.users.service;
 
 
-import com.sparta.publicclassdev.domain.community.dto.CommunitiesResponseDto;
-import com.sparta.publicclassdev.domain.community.entity.Communities;
-import com.sparta.publicclassdev.domain.community.repository.CommunitiesRepository;
+import com.sparta.publicclassdev.domain.communities.dto.CommunitiesResponseDto;
+import com.sparta.publicclassdev.domain.communities.entity.Communities;
+import com.sparta.publicclassdev.domain.communities.repository.CommunitiesRepository;
 import com.sparta.publicclassdev.domain.users.dao.UserRedisDao;
 import com.sparta.publicclassdev.domain.users.dto.AuthRequestDto;
 import com.sparta.publicclassdev.domain.users.dto.AuthResponseDto;

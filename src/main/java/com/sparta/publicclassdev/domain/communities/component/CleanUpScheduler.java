@@ -1,8 +1,7 @@
-package com.sparta.publicclassdev.domain.community.component;
+package com.sparta.publicclassdev.domain.communities.component;
 
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
-import org.springframework.boot.autoconfigure.cache.CacheProperties.Redis;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ZSetOperations;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -39,7 +38,7 @@ public class CleanUpScheduler {
             if(validTimeObj != null){
                 long time = Long.parseLong(validTimeObj);
 
-                if(currentTime - time >= TimeUnit.MINUTES.toMillis(1)){
+                if(currentTime - time >= TimeUnit.MINUTES.toMillis(30)){
                     zSetOperations.remove("searchRank", keywords);
                     System.out.println(zSetOperations);
                     redisTemplate.opsForHash().delete("keyword_data", keywords);

@@ -1,4 +1,4 @@
-package com.sparta.publicclassdev.domain.community.entity;
+package com.sparta.publicclassdev.domain.communities.entity;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;

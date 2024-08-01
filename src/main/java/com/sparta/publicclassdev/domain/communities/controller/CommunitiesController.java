@@ -1,10 +1,10 @@
-package com.sparta.publicclassdev.domain.community.controller;
+package com.sparta.publicclassdev.domain.communities.controller;
 
-import com.sparta.publicclassdev.domain.community.dto.CommunitiesRankDto;
-import com.sparta.publicclassdev.domain.community.dto.CommunitiesRequestDto;
-import com.sparta.publicclassdev.domain.community.dto.CommunitiesResponseDto;
-import com.sparta.publicclassdev.domain.community.dto.CommunitiesUpdateRequestDto;
-import com.sparta.publicclassdev.domain.community.service.CommunitiesService;
+import com.sparta.publicclassdev.domain.communities.dto.CommunitiesRankDto;
+import com.sparta.publicclassdev.domain.communities.dto.CommunitiesRequestDto;
+import com.sparta.publicclassdev.domain.communities.dto.CommunitiesResponseDto;
+import com.sparta.publicclassdev.domain.communities.dto.CommunitiesUpdateRequestDto;
+import com.sparta.publicclassdev.domain.communities.service.CommunitiesService;
 import com.sparta.publicclassdev.domain.users.entity.Users;
 import com.sparta.publicclassdev.global.dto.DataResponse;
 import com.sparta.publicclassdev.global.dto.MessageResponse;
@@ -12,7 +12,6 @@ import com.sparta.publicclassdev.global.security.UserDetailsImpl;
 import jakarta.validation.Valid;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
-import org.checkerframework.checker.units.qual.C;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
