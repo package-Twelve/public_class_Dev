@@ -1,8 +1,7 @@
-package com.sparta.publicclassdev.domain.community.dto;
+package com.sparta.publicclassdev.domain.communities.dto;
 
-import com.sparta.publicclassdev.domain.community.entity.Communities.Category;
+import com.sparta.publicclassdev.domain.communities.entity.Communities.Category;
 import com.sparta.publicclassdev.domain.communitycomments.dto.CommunityCommentResponseDto;
-import com.sparta.publicclassdev.global.entity.Timestamped;
 import java.time.LocalDateTime;
 import java.util.List;
 import lombok.Getter;

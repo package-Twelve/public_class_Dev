@@ -1,11 +1,11 @@
-package com.sparta.publicclassdev.domain.community.service;
+package com.sparta.publicclassdev.domain.communities.service;
 
-import com.sparta.publicclassdev.domain.community.dto.CommunitiesRankDto;
-import com.sparta.publicclassdev.domain.community.dto.CommunitiesRequestDto;
-import com.sparta.publicclassdev.domain.community.dto.CommunitiesResponseDto;
-import com.sparta.publicclassdev.domain.community.dto.CommunitiesUpdateRequestDto;
-import com.sparta.publicclassdev.domain.community.entity.Communities;
-import com.sparta.publicclassdev.domain.community.repository.CommunitiesRepository;
+import com.sparta.publicclassdev.domain.communities.dto.CommunitiesRankDto;
+import com.sparta.publicclassdev.domain.communities.dto.CommunitiesRequestDto;
+import com.sparta.publicclassdev.domain.communities.dto.CommunitiesResponseDto;
+import com.sparta.publicclassdev.domain.communities.dto.CommunitiesUpdateRequestDto;
+import com.sparta.publicclassdev.domain.communities.entity.Communities;
+import com.sparta.publicclassdev.domain.communities.repository.CommunitiesRepository;
 import com.sparta.publicclassdev.domain.communitycomments.dto.CommunityCommentResponseDto;
 import com.sparta.publicclassdev.domain.communitycomments.entity.CommunityComments;
 import com.sparta.publicclassdev.domain.users.entity.Users;
@@ -20,9 +20,6 @@ import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ZSetOperations;
 import org.springframework.stereotype.Service;
