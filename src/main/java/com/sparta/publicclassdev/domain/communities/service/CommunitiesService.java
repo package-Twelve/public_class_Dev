@@ -30,7 +30,7 @@ public class CommunitiesService {
 
     private static final Logger log = LoggerFactory.getLogger(CommunitiesService.class);
     private final CommunitiesRepository repository;
-    private final RedisTemplate<String, String> redisTemplate;
+    private final RedisTemplate<String, Object> redisTemplate;
 
     @PostConstruct
     public void cleanUpOldSearchData(){
@@ -38,9 +38,9 @@ public class CommunitiesService {
         String key = "searchRank";
         long currentTime = System.currentTimeMillis();
 
-        ZSetOperations<String, String> zSetOperations = redisTemplate.opsForZSet();
+        ZSetOperations<String, Object> zSetOperations = redisTemplate.opsForZSet();
 
-        Set<String> rankAll = zSetOperations.reverseRange(key, 0, -1);
+        Set<Object> rankAll = zSetOperations.reverseRange(key, 0, -1);
         if(rankAll != null && !rankAll.isEmpty()){
             deletePastKeyword(rankAll, currentTime);
         }
@@ -119,18 +119,19 @@ public class CommunitiesService {
     }
 
     public List<CommunitiesRankDto> rank() {
-        ZSetOperations<String, String> zSetOperations = redisTemplate.opsForZSet();
+        ZSetOperations<String, Object> zSetOperations = redisTemplate.opsForZSet();
 
-        Set<ZSetOperations.TypedTuple<String>> typedTuples = zSetOperations.reverseRangeWithScores("searchRank", 0, 4);
+        Set<ZSetOperations.TypedTuple<Object>> typedTuples = zSetOperations.reverseRangeWithScores("searchRank", 0, 4);
 
-        return typedTuples.stream().map(typedTuple -> new CommunitiesRankDto(typedTuple.getValue())).toList();
+        return typedTuples.stream().map(typedTuple -> new CommunitiesRankDto(
+            (String) typedTuple.getValue())).toList();
     }
 
-    public void deletePastKeyword(Set<String> keywordList, long currentTime) {
+    public void deletePastKeyword(Set<Object> keywordList, long currentTime) {
 
-        ZSetOperations<String, String> zSetOperations = redisTemplate.opsForZSet();
+        ZSetOperations<String, Object> zSetOperations = redisTemplate.opsForZSet();
 
-        for (String keywords : keywordList) {
+        for (Object keywords : keywordList) {
             String validTimeObj = (String) redisTemplate.opsForHash().get("keyword_data", keywords);
 
             if(validTimeObj != null){
