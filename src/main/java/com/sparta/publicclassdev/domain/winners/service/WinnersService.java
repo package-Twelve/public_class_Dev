@@ -13,6 +13,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -60,7 +61,9 @@ public class WinnersService {
         codeRunsList.stream()
             .collect(Collectors.groupingBy(codeRuns -> codeRuns.getTeams().getId()))
             .forEach((teamsId, teamCodeRuns) -> {
-                CodeRuns bestRun = getBestRuns(teamCodeRuns);
+                CodeRuns bestRun = teamCodeRuns.stream()
+                    .min(Comparator.comparingLong(CodeRuns::getResponseTime))
+                    .orElse(null);
                 if (bestRun != null) {
                     Winners winners = new Winners(
                         bestRun.getCode(),
