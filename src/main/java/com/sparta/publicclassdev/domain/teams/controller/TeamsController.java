@@ -19,9 +19,9 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 @RequestMapping("/api/teams")
 public class TeamsController {
-
+    
     private final TeamsService teamsService;
-
+    
     @PostMapping("/match")
     public ResponseEntity<MessageResponse> applyMatch(
         @AuthenticationPrincipal UserDetailsImpl userDetails) {
@@ -29,17 +29,19 @@ public class TeamsController {
         return ResponseEntity.status(HttpStatus.OK)
             .body(new MessageResponse(200, "팀 매칭 성공"));
     }
-
+    
     @PostMapping("/create")
-    public ResponseEntity<DataResponse<TeamResponseDto>> createTeam() {
-        TeamResponseDto response = teamsService.createTeam();
+    public ResponseEntity<DataResponse<TeamResponseDto>> createTeam(
+        @AuthenticationPrincipal UserDetailsImpl userDetails) {
+        TeamResponseDto response = teamsService.createTeam(userDetails.getUser());
         return ResponseEntity.status(HttpStatus.CREATED)
             .body(new DataResponse<>(201, "팀 생성 성공", response));
     }
-
+    
     @GetMapping("/{teamsId}")
-    public ResponseEntity<DataResponse<TeamResponseDto>> getTeamById(@AuthenticationPrincipal UserDetailsImpl userDetails, @PathVariable Long teamsId) {
-        Long usersId = userDetails.getUser().getId();
+    public ResponseEntity<DataResponse<TeamResponseDto>> getTeamById(
+        @AuthenticationPrincipal UserDetailsImpl userDetails, @PathVariable Long teamsId) {
+                                 Long usersId = userDetails.getUser().getId();
         TeamResponseDto responseDto = teamsService.getTeamById(teamsId, usersId);
         return ResponseEntity.status(HttpStatus.OK)
             .body(new DataResponse<>(200, "팀 조회 성공", responseDto));

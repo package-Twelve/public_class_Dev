@@ -1,5 +1,6 @@
 package com.sparta.publicclassdev.domain.codekatas.entity;
 
+import com.sparta.publicclassdev.domain.coderuns.entity.CodeRuns;
 import com.sparta.publicclassdev.domain.winners.entity.Winners;
 import com.sparta.publicclassdev.global.entity.Timestamped;
 import jakarta.persistence.Entity;
@@ -29,9 +30,9 @@ public class CodeKatas extends Timestamped {
     private String contents;
 
     private LocalDate markDate;
-
+    
     @OneToMany(mappedBy = "codeKatas")
-    private List<Winners> winners;
+    private List<CodeRuns> codeRuns;
 
     @Builder
     public CodeKatas(Long id, String contents, LocalDate markDate) {
