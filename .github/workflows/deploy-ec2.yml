@@ -76,8 +76,9 @@ jobs:
             echo "AWS_SG_ID=${{ secrets.AWS_SG_ID }}" | sudo tee -a /home/ubuntu/.env
             echo "EC2_WEB_SSH_PORT=${{ secrets.EC2_WEB_SSH_PORT }}" | sudo tee -a /home/ubuntu/.env
             echo "REDIS_PORT=${{ secrets.REDIS_PORT }}" | sudo tee -a /home/ubuntu/.env
-            
             echo "RSA_PRIVATE_KEY_BASE64=${{ secrets.RSA_PRIVATE_KEY_BASE64 }}" | sudo tee -a /home/ubuntu/.env
+            
             sudo docker pull ${{ secrets.DOCKERHUB_USERNAME }}/publicclassdev:latest
             docker images --format "{{.Repository}}:{{.Tag}} {{.ID}}" | grep -v "latest" | awk '{print $2}' | xargs -r sudo docker rmi -f
             sudo docker run -d -p 8080:8080 --name publicclassdev --env-file /home/ubuntu/.env ${{ secrets.DOCKERHUB_USERNAME }}/publicclassdev:latest
+            docker network connect app-network publicclassdev
