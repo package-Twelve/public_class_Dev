@@ -15,7 +15,7 @@ public class CleanUpScheduler {
         this.redisTemplate = redisTemplate;
     }
 
-    @Scheduled(fixedRate = 180000)
+    @Scheduled(fixedRate = 1800000)
     public void cleanUpOldSearchData(){
         String key = "searchRank";
         long currentTime = System.currentTimeMillis();
@@ -38,7 +38,7 @@ public class CleanUpScheduler {
             if(validTimeObj != null){
                 long time = Long.parseLong(validTimeObj);
 
-                if(currentTime - time >= TimeUnit.MINUTES.toMillis(2)){
+                if(currentTime - time >= TimeUnit.MINUTES.toMillis(30)){
                     zSetOperations.remove("searchRank", keywords);
                     System.out.println(zSetOperations);
                     redisTemplate.opsForHash().delete("keyword_data", keywords);
