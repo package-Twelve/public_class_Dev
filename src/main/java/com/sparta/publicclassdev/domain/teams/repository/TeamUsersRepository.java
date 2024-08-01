@@ -10,4 +10,6 @@ public interface TeamUsersRepository extends JpaRepository<TeamUsers, Long> {
     boolean existsByUsers(Users currentUser);
     
     Optional<TeamUsers> findByUsers(Users users);
+    
+    void deleteAllByTeams(Teams teams);
 }

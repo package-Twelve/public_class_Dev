@@ -3,6 +3,7 @@ package com.sparta.publicclassdev.domain.winners.entity;
 import com.sparta.publicclassdev.domain.coderuns.entity.CodeRuns;
 import com.sparta.publicclassdev.domain.teams.entity.Teams;
 import com.sparta.publicclassdev.global.entity.Timestamped;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
@@ -38,12 +39,12 @@ public class Winners extends Timestamped {
     
     private LocalDate date;
     
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
     @JoinColumn(name = "coderuns_id")
     private CodeRuns codeRuns;
     
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "teams_id")
+    @JoinColumn(name = "teams_id", insertable = false, updatable = false)
     private Teams teams;
     
     @Builder
