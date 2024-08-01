@@ -24,32 +24,28 @@ public class TeamsController {
     private final TeamsService teamsService;
     
     @PostMapping("/match")
-    public ResponseEntity<DataResponse<TeamResponseDto>> applyMatch(
-        @AuthenticationPrincipal UserDetailsImpl userDetails) {
-        TeamResponseDto teamResponse = teamsService.teamMatch(userDetails.getUser());
+    public ResponseEntity<MessageResponse> applyMatch(@AuthenticationPrincipal UserDetailsImpl userDetails) {
+        teamsService.addWaitQueue(userDetails.getUser());
         return ResponseEntity.status(HttpStatus.OK)
-            .body(new DataResponse<>(200, "팀 매칭 성공", teamResponse));
+            .body(new MessageResponse(200, "팀 매칭 성공"));
     }
     
     @PostMapping("/create")
-    public ResponseEntity<DataResponse<TeamResponseDto>> createTeam(
-        @AuthenticationPrincipal UserDetailsImpl userDetails) {
-        TeamResponseDto response = teamsService.createTeam(userDetails.getUser());
+    public ResponseEntity<DataResponse<TeamResponseDto>> createTeam() {
+        TeamResponseDto response = teamsService.createTeam();
         return ResponseEntity.status(HttpStatus.CREATED)
             .body(new DataResponse<>(201, "팀 생성 성공", response));
     }
     
     @GetMapping("/myteam")
-    public ResponseEntity<DataResponse<TeamResponseDto>> getTeamByCurrentUser(
-        @AuthenticationPrincipal UserDetailsImpl userDetails) {
+    public ResponseEntity<DataResponse<TeamResponseDto>> getTeamByCurrentUser(@AuthenticationPrincipal UserDetailsImpl userDetails) {
         TeamResponseDto responseDto = teamsService.getTeamByUserEmail(userDetails.getEmail());
         return ResponseEntity.status(HttpStatus.OK)
             .body(new DataResponse<>(200, "팀 조회 성공", responseDto));
     }
     
     @GetMapping("/{teamsId}")
-    public ResponseEntity<DataResponse<TeamResponseDto>> getTeamById(
-        @PathVariable Long teamsId) {
+    public ResponseEntity<DataResponse<TeamResponseDto>> getTeamById(@PathVariable Long teamsId) {
         TeamResponseDto responseDto = teamsService.getTeamById(teamsId);
         return ResponseEntity.status(HttpStatus.OK)
             .body(new DataResponse<>(200, "팀 조회 성공", responseDto));

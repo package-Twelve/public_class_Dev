@@ -39,13 +39,13 @@ public class Teams extends Timestamped {
     
     @OneToMany(mappedBy = "teams", orphanRemoval = true, cascade = CascadeType.ALL)
     private List<CodeRuns> codeRuns;
-
+    
     @Builder
-    public Teams(String name, List<TeamUsers> teamUsers, List<ChatRooms> chatRooms,
-        List<Winners> winners) {
+    public Teams(String name) {
         this.name = name;
-        this.teamUsers = teamUsers;
-        this.chatRooms = chatRooms;
-        this.winners = winners;
+    }
+    
+    public void addTeamUser(TeamUsers teamUser) {
+        this.teamUsers.add(teamUser);
     }
 }

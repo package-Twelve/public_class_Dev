@@ -21,8 +21,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.ConcurrentLinkedDeque;
-import java.util.stream.Collectors;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -64,35 +64,38 @@ public class TeamsService {
     }
     
     @Transactional
-    public TeamResponseDto teamMatch(Users users) {
-        checkUserInTeam(users);
+    public void addWaitQueue(Users user) {
+        checkUserInTeam(user);
         lock.lock();
         try {
-            if (!waitQueue.contains(users)) {
-                waitQueue.add(users);
+            if (!waitQueue.contains(user)) {
+                waitQueue.add(user);
             }
-            return createTeam(users);
         } finally {
             lock.unlock();
         }
     }
     
+    
     @Transactional
-    public TeamResponseDto createTeam(Users currentUser) {
-        checkUserInTeam(currentUser);
+    public TeamResponseDto createTeam() {
         List<Users> waitUser = new ArrayList<>();
         lock.lock();
         try {
             for (int i = 0; i < 3 && !waitQueue.isEmpty(); i++) {
                 Users user = waitQueue.poll();
-                if (!teamUsersRepository.existsByUsers(user)) {
+                if (user != null && !teamUsersRepository.existsByUsers(user)) {
                     waitUser.add(user);
                 }
             }
         } finally {
             lock.unlock();
         }
-        waitUser.add(currentUser);
+        
+        if (waitUser.isEmpty()) {
+            throw new CustomException(ErrorCode.NO_USERS_IN_WAITQUEUE);
+        }
+        
         Collections.shuffle(waitUser);
         
         Teams teams = Teams.builder()
@@ -189,7 +192,7 @@ public class TeamsService {
     @Transactional
     public void resetAutoIncrementColumns() {
         entityManager.createNativeQuery("ALTER TABLE teams AUTO_INCREMENT = 1").executeUpdate();
-        entityManager.createNativeQuery("ALTER TABLE team_users AUTO_INCREMENT = 1").executeUpdate();
+    entityManager.createNativeQuery("ALTER TABLE team_users AUTO_INCREMENT = 1").executeUpdate();
         entityManager.createNativeQuery("ALTER TABLE chatrooms AUTO_INCREMENT = 1").executeUpdate();
         entityManager.createNativeQuery("ALTER TABLE coderuns AUTO_INCREMENT = 1").executeUpdate();
         entityManager.createNativeQuery("ALTER TABLE chatroomusers AUTO_INCREMENT = 1").executeUpdate();

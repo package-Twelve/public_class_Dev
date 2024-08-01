@@ -51,7 +51,7 @@ Content-Type: application/json
 Authorization: {{Authorization}}
 
 ### 팀 조회
-GET http://localhost:8080/api/teams/3
+GET http://localhost:8080/api/teams/myteam
 Content-Type: application/json
 Authorization: {{Authorization}}
 
