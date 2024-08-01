@@ -1,4 +1,4 @@
-package com.sparta.publicclassdev.domain.community.dto;
+package com.sparta.publicclassdev.domain.communities.dto;
 
 import lombok.Getter;
 

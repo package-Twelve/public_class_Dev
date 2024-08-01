@@ -1,8 +1,7 @@
-package com.sparta.publicclassdev.domain.community.component;
+package com.sparta.publicclassdev.domain.communities.component;
 
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
-import org.springframework.boot.autoconfigure.cache.CacheProperties.Redis;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ZSetOperations;
 import org.springframework.scheduling.annotation.Scheduled;
