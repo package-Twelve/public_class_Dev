@@ -67,6 +67,10 @@ public class TeamsService {
     
     @Transactional
     public TeamResponseDto teamMatch(Users users) {
+        boolean isUserInTeam = teamUsersRepository.existsByUsers(users);
+        if (isUserInTeam) {
+            throw new CustomException(ErrorCode.USER_ALREADY_TEAM);
+        }
         waitQueue.add(users);
         return createTeam(users);
     }
@@ -75,7 +79,7 @@ public class TeamsService {
     public TeamResponseDto createTeam(Users currentUser) {
         boolean isUserInTeam = teamUsersRepository.existsByUsers(currentUser);
         if (isUserInTeam) {
-            throw new CustomException(ErrorCode.USER_NOT_TEAM);
+            throw new CustomException(ErrorCode.USER_ALREADY_TEAM);
         }
         
         List<Users> waitUser = new ArrayList<>();
@@ -138,12 +142,15 @@ public class TeamsService {
     }
     
     @Transactional(readOnly = true)
-    public TeamResponseDto getTeamByUserId(Long usersId) {
-        Users users = validateUser(usersId);
+    public TeamResponseDto getTeamByUserEmail(String email) {
+        Users users = validateUserByEmail(email);
         
-        TeamUsers teamUser = teamUsersRepository.findByUsers(users)
-            .orElseThrow(() -> new CustomException(ErrorCode.TEAM_NOT_FOUND));
+        List<TeamUsers> teamUsersList = teamUsersRepository.findByUsers(users);
+        if (teamUsersList.isEmpty()) {
+            throw new CustomException(ErrorCode.USER_ALREADY_TEAM);
+        }
         
+        TeamUsers teamUser = teamUsersList.get(0);
         Teams teams = teamUser.getTeams();
         
         List<Users> teamMembers = teams.getTeamUsers().stream()
@@ -153,8 +160,8 @@ public class TeamsService {
         return new TeamResponseDto(teams, teamMembers);
     }
     
-    private Users validateUser(Long userId) {
-        return usersRepository.findById(userId)
+    private Users validateUserByEmail(String email) {
+        return usersRepository.findByEmail(email)
             .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
     }
     

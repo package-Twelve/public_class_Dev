@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -38,10 +39,10 @@ public class TeamsController {
             .body(new DataResponse<>(201, "팀 생성 성공", response));
     }
     
-    @GetMapping("/users/{usersId}")
-    public ResponseEntity<DataResponse<TeamResponseDto>> getTeamByUserId(
-        @AuthenticationPrincipal UserDetailsImpl userDetails, @PathVariable Long usersId) {
-        TeamResponseDto responseDto = teamsService.getTeamByUserId(usersId);
+    @GetMapping("/myteam")
+    public ResponseEntity<DataResponse<TeamResponseDto>> getTeamByCurrentUser(
+        @AuthenticationPrincipal UserDetailsImpl userDetails) {
+        TeamResponseDto responseDto = teamsService.getTeamByUserEmail(userDetails.getUsername());
         return ResponseEntity.status(HttpStatus.OK)
             .body(new DataResponse<>(200, "팀 조회 성공", responseDto));
     }
@@ -52,5 +53,12 @@ public class TeamsController {
         TeamResponseDto responseDto = teamsService.getTeamById(teamsId);
         return ResponseEntity.status(HttpStatus.OK)
             .body(new DataResponse<>(200, "팀 조회 성공", responseDto));
+    }
+    
+    @DeleteMapping("/delete-all")
+    public ResponseEntity<MessageResponse> deleteAllTeams() {
+        teamsService.deleteAllTeams();
+        return ResponseEntity.status(HttpStatus.OK)
+            .body(new MessageResponse(200, "팀 전부 삭제 성공"));
     }
 }
