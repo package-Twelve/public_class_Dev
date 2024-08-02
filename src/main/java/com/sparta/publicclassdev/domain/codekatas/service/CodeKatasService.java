@@ -26,13 +26,14 @@ public class CodeKatasService {
     public CodeKatasDto createCodeKata(HttpServletRequest request, CodeKatasDto codeKatasDto) {
         checkAdminRole(request);
         CodeKatas codeKatas = CodeKatas.builder()
+            .title(codeKatasDto.getTitle())
             .contents(codeKatasDto.getContents())
             .markDate(null)
             .build();
         
         codeKatasRepository.save(codeKatas);
         
-        return new CodeKatasDto(codeKatas.getId(), codeKatasDto.getContents(),
+        return new CodeKatasDto(codeKatas.getId(), codeKatas.getTitle(), codeKatasDto.getContents(),
             codeKatas.getMarkDate());
     }
     
@@ -40,7 +41,7 @@ public class CodeKatasService {
         checkAdminRole(request);
         CodeKatas codeKatas = codeKatasRepository.findById(id)
             .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_CODEKATA));
-        return new CodeKatasDto(codeKatas.getId(), codeKatas.getContents(),
+        return new CodeKatasDto(codeKatas.getId(), codeKatas.getTitle(), codeKatas.getContents(),
             codeKatas.getMarkDate());
     }
     
@@ -48,7 +49,7 @@ public class CodeKatasService {
         checkAdminRole(request);
         List<CodeKatas> codeKatasList = codeKatasRepository.findAll();
         return codeKatasList.stream()
-            .map(kata -> new CodeKatasDto(kata.getId(), kata.getContents(), kata.getMarkDate()))
+            .map(kata -> new CodeKatasDto(kata.getId(), kata.getTitle(), kata.getContents(), kata.getMarkDate()))
             .collect(Collectors.toList());
     }
     
@@ -68,7 +69,7 @@ public class CodeKatasService {
         codeKatas.markCodeKatas(null);
         codeKatasRepository.save(codeKatas);
         
-        return new CodeKatasDto(codeKatasDto.getId(), codeKatasDto.getContents(),
+        return new CodeKatasDto(codeKatasDto.getId(), codeKatasDto.getTitle(), codeKatasDto.getContents(),
             codeKatas.getMarkDate());
     }
     
@@ -76,7 +77,7 @@ public class CodeKatasService {
         List<CodeKatas> markedKatas = codeKatasRepository.findByMarkDate(LocalDate.now());
         if (!markedKatas.isEmpty()) {
             CodeKatas codeKatas = markedKatas.get(0);
-            return new CodeKatasDto(codeKatas.getId(), codeKatas.getContents(),
+            return new CodeKatasDto(codeKatas.getId(), codeKatas.getTitle(), codeKatas.getContents(),
                 codeKatas.getMarkDate());
         } else {
             return createRandomCodeKata();
@@ -93,7 +94,7 @@ public class CodeKatasService {
         codeKatas.markCodeKatas(LocalDate.now());
         codeKatasRepository.save(codeKatas);
         
-        return new CodeKatasDto(codeKatas.getId(), codeKatas.getContents(),
+        return new CodeKatasDto(codeKatas.getId(), codeKatas.getTitle(), codeKatas.getContents(),
             codeKatas.getMarkDate());
     }
     
