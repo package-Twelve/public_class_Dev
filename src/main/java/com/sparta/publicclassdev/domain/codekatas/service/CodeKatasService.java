@@ -105,5 +105,4 @@ public class CodeKatasService {
             throw new CustomException(ErrorCode.NOT_UNAUTHORIZED);
         }
     }
-    
 }
