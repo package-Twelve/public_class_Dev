@@ -51,6 +51,11 @@ Content-Type: application/json
 Authorization: {{Authorization}}
 
 ### 팀 조회
-GET http://localhost:8080/api/teams/1
+GET http://localhost:8080/api/teams/myteam
+Content-Type: application/json
+Authorization: {{Authorization}}
+
+### 팀 조회(이메일 조회)
+GET http://localhost:8080/api/teams/users/asdf2345@email.com
 Content-Type: application/json
 Authorization: {{Authorization}}

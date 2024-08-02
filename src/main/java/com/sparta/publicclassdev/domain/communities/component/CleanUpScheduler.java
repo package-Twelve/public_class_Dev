@@ -38,7 +38,7 @@ public class CleanUpScheduler {
             if(validTimeObj != null){
                 long time = Long.parseLong(validTimeObj);
 
-                if(currentTime - time >= TimeUnit.MINUTES.toMillis(1)){
+                if(currentTime - time >= TimeUnit.MINUTES.toMillis(30)){
                     zSetOperations.remove("searchRank", keywords);
                     System.out.println(zSetOperations);
                     redisTemplate.opsForHash().delete("keyword_data", keywords);

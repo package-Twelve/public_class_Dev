@@ -10,15 +10,15 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 public class UserDetailsImpl implements UserDetails {
     private final Users user;
-
+    
     public UserDetailsImpl(Users user) {
         this.user = user;
     }
-
+    
     public Users getUser() {
         return user;
     }
-
+    
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         RoleEnum role = user.getRole();
