@@ -2,7 +2,6 @@ package com.sparta.publicclassdev.domain.winners.service;
 
 import com.sparta.publicclassdev.domain.coderuns.entity.CodeRuns;
 import com.sparta.publicclassdev.domain.coderuns.repository.CodeRunsRepository;
-import com.sparta.publicclassdev.domain.teams.entity.Teams;
 import com.sparta.publicclassdev.domain.winners.dto.WinnersResponseDto;
 import com.sparta.publicclassdev.domain.winners.entity.Winners;
 import com.sparta.publicclassdev.domain.winners.repository.WinnersRepository;
@@ -13,7 +12,6 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -28,29 +26,35 @@ public class WinnersService {
     
     public List<WinnersResponseDto> findAllWinners() {
         return winnersRepository.findAll().stream()
-            .map(winners -> new WinnersResponseDto(
-                winners.getId(),
-                winners.getCode(),
-                winners.getLanguage(),
-                winners.getResponseTime(),
-                winners.getResult(),
-                winners.getTeamName(),
-                winners.getDate()
-            ))
+            .map(winners -> WinnersResponseDto.builder()
+                .id(winners.getId())
+                .code(winners.getCode())
+                .language(winners.getLanguage())
+                .responseTime(winners.getResponseTime())
+                .result(winners.getResult())
+                .teamName(winners.getTeamName())
+                .date(winners.getDate())
+                .codeKataTitle(winners.getCodeKatas().getTitle())
+                .codeKataContents(winners.getCodeKatas().getContents())
+                .build()
+            )
             .collect(Collectors.toList());
     }
     
     public WinnersResponseDto findWinnerById(Long id) {
         return winnersRepository.findById(id)
-            .map(winners -> new WinnersResponseDto(
-                winners.getId(),
-                winners.getCode(),
-                winners.getLanguage(),
-                winners.getResponseTime(),
-                winners.getResult(),
-                winners.getTeamName(),
-                winners.getDate()
-            ))
+            .map(winners -> WinnersResponseDto.builder()
+                .id(winners.getId())
+                .code(winners.getCode())
+                .language(winners.getLanguage())
+                .responseTime(winners.getResponseTime())
+                .result(winners.getResult())
+                .teamName(winners.getTeamName())
+                .date(winners.getDate())
+                .codeKataTitle(winners.getCodeKatas().getTitle())
+                .codeKataContents(winners.getCodeKatas().getContents())
+                .build()
+            )
             .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_CODEKATA));
     }
     
@@ -65,16 +69,17 @@ public class WinnersService {
                     .min(Comparator.comparingLong(CodeRuns::getResponseTime))
                     .orElse(null);
                 if (bestRun != null) {
-                    Winners winners = new Winners(
-                        bestRun.getCode(),
-                        bestRun.getLanguage(),
-                        bestRun.getResponseTime(),
-                        bestRun.getResult(),
-                        bestRun.getTeams().getName(),
-                        LocalDate.now(),
-                        bestRun,
-                        bestRun.getTeams()
-                    );
+                    Winners winners = Winners.builder()
+                        .code(bestRun.getCode())
+                        .language(bestRun.getLanguage())
+                        .responseTime(bestRun.getResponseTime())
+                        .result(bestRun.getResult())
+                        .teamName(bestRun.getTeams().getName())
+                        .date(LocalDate.now())
+                        .codeRuns(bestRun)
+                        .teams(bestRun.getTeams())
+                        .codeKatas(bestRun.getCodeKatas())
+                        .build();
                     winnersRepository.save(winners);
                 }
             });

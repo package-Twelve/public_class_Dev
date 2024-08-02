@@ -27,6 +27,8 @@ public class CodeKatas extends Timestamped {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    private String title;
+    
     private String contents;
 
     private LocalDate markDate;
@@ -35,13 +37,15 @@ public class CodeKatas extends Timestamped {
     private List<CodeRuns> codeRuns;
 
     @Builder
-    public CodeKatas(Long id, String contents, LocalDate markDate) {
+    public CodeKatas(Long id, String title, String contents, LocalDate markDate) {
         this.id = id;
+        this.title = title;
         this.contents = contents;
         this.markDate = markDate;
     }
 
-    public void updateContents(String contents) {
+    public void updateContents(String title, String contents) {
+        this.title = title;
         this.contents = contents;
     }
 

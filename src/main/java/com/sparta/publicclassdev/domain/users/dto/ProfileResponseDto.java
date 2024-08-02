@@ -21,10 +21,4 @@ public class ProfileResponseDto {
         this.role = user.getRole();
         this.recentCommunities = recentCommunities;
     }
-
-    public ProfileResponseDto(Users user) {
-        this.name = user.getName();
-        this.email = user.getEmail();
-        this.intro = user.getIntro();
-    }
 }
