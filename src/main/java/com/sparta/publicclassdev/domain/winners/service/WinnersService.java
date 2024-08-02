@@ -2,6 +2,7 @@ package com.sparta.publicclassdev.domain.winners.service;
 
 import com.sparta.publicclassdev.domain.coderuns.entity.CodeRuns;
 import com.sparta.publicclassdev.domain.coderuns.repository.CodeRunsRepository;
+import com.sparta.publicclassdev.domain.teams.entity.Teams;
 import com.sparta.publicclassdev.domain.winners.dto.WinnersResponseDto;
 import com.sparta.publicclassdev.domain.winners.entity.Winners;
 import com.sparta.publicclassdev.domain.winners.repository.WinnersRepository;
@@ -12,9 +13,11 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -51,13 +54,16 @@ public class WinnersService {
             .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_CODEKATA));
     }
     
+    @Transactional
     public void dailyWinners() {
         List<CodeRuns> codeRunsList = getYesterdayCodeRuns();
         
         codeRunsList.stream()
             .collect(Collectors.groupingBy(codeRuns -> codeRuns.getTeams().getId()))
             .forEach((teamsId, teamCodeRuns) -> {
-                CodeRuns bestRun = getBestRuns(teamCodeRuns);
+                CodeRuns bestRun = teamCodeRuns.stream()
+                    .min(Comparator.comparingLong(CodeRuns::getResponseTime))
+                    .orElse(null);
                 if (bestRun != null) {
                     Winners winners = new Winners(
                         bestRun.getCode(),
