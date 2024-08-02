@@ -9,6 +9,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -17,6 +18,8 @@ import lombok.NoArgsConstructor;
 @Table(name = "messages")
 @Getter
 @NoArgsConstructor
+@Builder
+@AllArgsConstructor
 public class Messages extends Timestamped {
 
     @Id
@@ -32,11 +35,4 @@ public class Messages extends Timestamped {
     @ManyToOne
     @JoinColumn(name = "chatrooms_id")
     private ChatRooms chatRooms;
-
-    @Builder
-    public Messages(String contents, Users users, ChatRooms chatRooms) {
-        this.contents = contents;
-        this.users = users;
-        this.chatRooms = chatRooms;
-    }
 }
