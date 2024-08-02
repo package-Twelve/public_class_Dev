@@ -42,10 +42,6 @@ jobs:
       - name: Docker Hub Push
         run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/publicclassdev:latest
 
-
-      - name: Debug .env file
-        run: cat .env || echo ".env file does not exist"
-
       - name: AWS EC2 Connection
         uses: appleboy/ssh-action@v0.1.6
         with:
@@ -77,7 +73,6 @@ jobs:
             echo "EC2_WEB_SSH_PORT=${{ secrets.EC2_WEB_SSH_PORT }}" | sudo tee -a /home/ubuntu/.env
             echo "REDIS_PORT=${{ secrets.REDIS_PORT }}" | sudo tee -a /home/ubuntu/.env
             echo "RSA_PRIVATE_KEY_BASE64=${{ secrets.RSA_PRIVATE_KEY_BASE64 }}" | sudo tee -a /home/ubuntu/.env
-            
             sudo docker pull ${{ secrets.DOCKERHUB_USERNAME }}/publicclassdev:latest
             docker images --format "{{.Repository}}:{{.Tag}} {{.ID}}" | grep -v "latest" | awk '{print $2}' | xargs -r sudo docker rmi -f
             sudo docker run -d -p 8080:8080 --name publicclassdev --env-file /home/ubuntu/.env ${{ secrets.DOCKERHUB_USERNAME }}/publicclassdev:latest
