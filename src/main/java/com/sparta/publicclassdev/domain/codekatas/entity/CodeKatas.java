@@ -44,7 +44,8 @@ public class CodeKatas extends Timestamped {
         this.markDate = markDate;
     }
 
-    public void updateContents(String contents) {
+    public void updateContents(String title, String contents) {
+        this.title = title;
         this.contents = contents;
     }
 

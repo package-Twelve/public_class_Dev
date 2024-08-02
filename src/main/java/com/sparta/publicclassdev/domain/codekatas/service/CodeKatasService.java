@@ -14,6 +14,8 @@ import java.util.List;
 import java.util.Random;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -45,12 +47,10 @@ public class CodeKatasService {
             codeKatas.getMarkDate());
     }
     
-    public List<CodeKatasDto> getAllCodeKatas(HttpServletRequest request) {
+    public Page<CodeKatasDto> getAllCodeKatas(HttpServletRequest request, Pageable pageable) {
         checkAdminRole(request);
-        List<CodeKatas> codeKatasList = codeKatasRepository.findAll();
-        return codeKatasList.stream()
-            .map(kata -> new CodeKatasDto(kata.getId(), kata.getTitle(), kata.getContents(), kata.getMarkDate()))
-            .collect(Collectors.toList());
+        Page<CodeKatas> codeKatasPage = codeKatasRepository.findAll(pageable);
+        return codeKatasPage.map(kata -> new CodeKatasDto(kata.getId(), kata.getTitle(), kata.getContents(), kata.getMarkDate()));
     }
     
     public void deleteCodeKata(HttpServletRequest request, Long id) {
@@ -65,7 +65,7 @@ public class CodeKatasService {
         CodeKatas codeKatas = codeKatasRepository.findById(id)
             .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_CODEKATA));
         
-        codeKatas.updateContents(codeKatasDto.getContents());
+        codeKatas.updateContents(codeKatasDto.getTitle(), codeKatasDto.getContents());
         codeKatas.markCodeKatas(null);
         codeKatasRepository.save(codeKatas);
         
