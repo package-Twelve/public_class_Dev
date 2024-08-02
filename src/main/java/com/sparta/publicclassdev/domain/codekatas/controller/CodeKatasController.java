@@ -7,6 +7,9 @@ import com.sparta.publicclassdev.global.dto.MessageResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -33,8 +36,10 @@ public class CodeKatasController {
     }
     
     @GetMapping("/all")
-    public ResponseEntity<DataResponse<List<CodeKatasDto>>> getAllCodeKata(HttpServletRequest request) {
-        List<CodeKatasDto> codeKatas = codeKatasService.getAllCodeKatas(request);
+    public ResponseEntity<DataResponse<Page<CodeKatasDto>>> getAllCodeKata(
+        HttpServletRequest request,
+        @PageableDefault(size = 6) Pageable pageable) {
+        Page<CodeKatasDto> codeKatas = codeKatasService.getAllCodeKatas(request, pageable);
         return ResponseEntity.status(HttpStatus.OK)
             .body(new DataResponse<>(200, "전체 코드카타 조회 성공", codeKatas));
     }

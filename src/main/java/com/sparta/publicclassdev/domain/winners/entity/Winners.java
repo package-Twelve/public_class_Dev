@@ -1,5 +1,6 @@
 package com.sparta.publicclassdev.domain.winners.entity;
 
+import com.sparta.publicclassdev.domain.codekatas.entity.CodeKatas;
 import com.sparta.publicclassdev.domain.coderuns.entity.CodeRuns;
 import com.sparta.publicclassdev.domain.teams.entity.Teams;
 import com.sparta.publicclassdev.global.entity.Timestamped;
@@ -47,9 +48,13 @@ public class Winners extends Timestamped {
     @JoinColumn(name = "teams_id", insertable = false, updatable = false)
     private Teams teams;
     
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "codekatas_id")
+    private CodeKatas codeKatas;
+    
     @Builder
     public Winners(String code, String language, Long responseTime, String result, String teamName,
-                   LocalDate date, CodeRuns codeRuns, Teams teams) {
+                   LocalDate date, CodeRuns codeRuns, Teams teams, CodeKatas codeKatas) {
         this.code = code;
         this.language = language;
         this.responseTime = responseTime;
@@ -58,5 +63,6 @@ public class Winners extends Timestamped {
         this.date = date;
         this.codeRuns = codeRuns;
         this.teams = teams;
+        this.codeKatas = codeKatas;
     }
 }

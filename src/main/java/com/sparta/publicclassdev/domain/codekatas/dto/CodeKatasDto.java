@@ -10,11 +10,13 @@ import lombok.NoArgsConstructor;
 public class CodeKatasDto {
 
     private Long id;
+    private String title;
     private String contents;
     private LocalDate markDate;
 
-    public CodeKatasDto(Long id, String contents, LocalDate markDate) {
+    public CodeKatasDto(Long id, String title, String contents, LocalDate markDate) {
         this.id = id;
+        this.title = title;
         this.contents = contents;
         this.markDate = markDate;
     }
