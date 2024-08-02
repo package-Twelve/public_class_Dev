@@ -19,8 +19,8 @@ import lombok.NoArgsConstructor;
 @Entity
 @Table(name = "chatrooms")
 @Getter
-@Builder
 @NoArgsConstructor
+@Builder
 @AllArgsConstructor
 public class ChatRooms {
     @Id
@@ -30,10 +30,10 @@ public class ChatRooms {
     @ManyToOne
     @JoinColumn(name = "teams_id")
     private Teams teams;
-
-    @OneToMany(mappedBy = "chatRooms")
+    
+    @OneToMany(mappedBy = "chatRooms", orphanRemoval = true)
     private List<ChatRoomUsers> chatRoomUsers;
-
-    @OneToMany(mappedBy = "chatRooms")
+    
+    @OneToMany(mappedBy = "chatRooms", orphanRemoval = true)
     private List<Messages> messages;
 }

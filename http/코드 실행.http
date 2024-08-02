@@ -30,7 +30,7 @@ Content-Type: application/json
 
 
 ### 파이썬 실행
-POST http://localhost:8080/api/coderuns/5/5/runs
+POST http://localhost:8080/api/coderuns/8/3/runs
 Content-Type: application/json
 Authorization: {{Authorization}}
 
@@ -41,7 +41,7 @@ Authorization: {{Authorization}}
 
 
 ### JavaScript 코드 실행
-POST http://localhost:8080/api/coderuns/5/5/runs
+POST http://localhost:8080/api/coderuns/8/3/runs
 Content-Type: application/json
 Authorization: {{Authorization}}
 
@@ -52,7 +52,7 @@ Authorization: {{Authorization}}
 
 
 ### Java 코드 실행
-POST http://localhost:8080/api/coderuns/5/5/runs
+POST http://localhost:8080/api/coderuns/8/3/runs
 Content-Type: application/json
 Authorization: {{Authorization}}
 

@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -25,50 +26,60 @@ public class WinnersService {
     
     public List<WinnersResponseDto> findAllWinners() {
         return winnersRepository.findAll().stream()
-            .map(winners -> new WinnersResponseDto(
-                winners.getId(),
-                winners.getCode(),
-                winners.getLanguage(),
-                winners.getResponseTime(),
-                winners.getResult(),
-                winners.getTeamName(),
-                winners.getDate()
-            ))
+            .map(winners -> WinnersResponseDto.builder()
+                .id(winners.getId())
+                .code(winners.getCode())
+                .language(winners.getLanguage())
+                .responseTime(winners.getResponseTime())
+                .result(winners.getResult())
+                .teamName(winners.getTeamName())
+                .date(winners.getDate())
+                .codeKataTitle(winners.getCodeKatas().getTitle())
+                .codeKataContents(winners.getCodeKatas().getContents())
+                .build()
+            )
             .collect(Collectors.toList());
     }
     
     public WinnersResponseDto findWinnerById(Long id) {
         return winnersRepository.findById(id)
-            .map(winners -> new WinnersResponseDto(
-                winners.getId(),
-                winners.getCode(),
-                winners.getLanguage(),
-                winners.getResponseTime(),
-                winners.getResult(),
-                winners.getTeamName(),
-                winners.getDate()
-            ))
+            .map(winners -> WinnersResponseDto.builder()
+                .id(winners.getId())
+                .code(winners.getCode())
+                .language(winners.getLanguage())
+                .responseTime(winners.getResponseTime())
+                .result(winners.getResult())
+                .teamName(winners.getTeamName())
+                .date(winners.getDate())
+                .codeKataTitle(winners.getCodeKatas().getTitle())
+                .codeKataContents(winners.getCodeKatas().getContents())
+                .build()
+            )
             .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_CODEKATA));
     }
     
+    @Transactional
     public void dailyWinners() {
         List<CodeRuns> codeRunsList = getYesterdayCodeRuns();
         
         codeRunsList.stream()
             .collect(Collectors.groupingBy(codeRuns -> codeRuns.getTeams().getId()))
             .forEach((teamsId, teamCodeRuns) -> {
-                CodeRuns bestRun = getBestRuns(teamCodeRuns);
+                CodeRuns bestRun = teamCodeRuns.stream()
+                    .min(Comparator.comparingLong(CodeRuns::getResponseTime))
+                    .orElse(null);
                 if (bestRun != null) {
-                    Winners winners = new Winners(
-                        bestRun.getCode(),
-                        bestRun.getLanguage(),
-                        bestRun.getResponseTime(),
-                        bestRun.getResult(),
-                        bestRun.getTeams().getName(),
-                        LocalDate.now(),
-                        bestRun,
-                        bestRun.getTeams()
-                    );
+                    Winners winners = Winners.builder()
+                        .code(bestRun.getCode())
+                        .language(bestRun.getLanguage())
+                        .responseTime(bestRun.getResponseTime())
+                        .result(bestRun.getResult())
+                        .teamName(bestRun.getTeams().getName())
+                        .date(LocalDate.now())
+                        .codeRuns(bestRun)
+                        .teams(bestRun.getTeams())
+                        .codeKatas(bestRun.getCodeKatas())
+                        .build();
                     winnersRepository.save(winners);
                 }
             });

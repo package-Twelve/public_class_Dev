@@ -117,6 +117,11 @@ public class JwtUtil {
     public Claims getUserInfoFromToken(String token) {
         return Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token).getBody();
     }
+    
+    public String getUserEmailFromToken(String token) {
+        Claims claims = getUserInfoFromToken(token);
+        return claims.getSubject();
+    }
 
     public Long getExpiration(String token) {
         Date expiration = Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token).getBody().getExpiration();

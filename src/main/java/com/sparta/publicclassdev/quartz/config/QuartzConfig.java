@@ -13,7 +13,7 @@ import org.springframework.context.annotation.Configuration;
 public class QuartzConfig {
 
     @Bean
-    public JobDetail dailyCodeKataDetatil() {
+    public JobDetail dailyCodeKataDetail() {
         return JobBuilder.newJob(DailyCodeKataJob.class)
             .withIdentity("dailyCodeKataJob")
             .storeDurably()
