@@ -3,6 +3,7 @@ package com.sparta.publicclassdev.domain.chatrooms.service;
 import static org.mockito.Mockito.*;
 import static org.assertj.core.api.Assertions.*;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.sparta.publicclassdev.domain.chatrooms.dto.ChatRoomsDto;
 import com.sparta.publicclassdev.domain.chatrooms.entity.ChatRooms;
 import com.sparta.publicclassdev.domain.chatrooms.entity.Messages;
@@ -62,12 +63,12 @@ public class ChatRoomsServiceTest {
     }
 
     @Test
-    public void sendMessageTest() {
+    public void sendMessageTest() throws JsonProcessingException {
         ChatRoomsDto chatRoomsDto = ChatRoomsDto.builder()
             .type(ChatRoomsDto.MessageType.CHAT)
             .content("Hello")
             .sender("testUser")
-            .roomId("1")
+            .teamsId("1")
             .build();
 
         chatRoomsService.sendMessage(chatRoomsDto);
@@ -82,7 +83,7 @@ public class ChatRoomsServiceTest {
             .type(ChatRoomsDto.MessageType.CHAT)
             .content("Hello")
             .sender("unknown")
-            .roomId("1")
+            .teamsId("1")
             .build();
 
         when(usersRepository.findByName("unknown")).thenReturn(Optional.empty());
