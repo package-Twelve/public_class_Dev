@@ -1,7 +1,5 @@
 package com.sparta.publicclassdev.global.config;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -15,11 +13,7 @@ import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSeriali
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 
 @Configuration
-@RequiredArgsConstructor
 public class RedisConfig {
-    
-    private final RedisSubscriber redisSubscriber;
-    
     @Value("${spring.data.redis.host}")
     private String host;
     @Value("${spring.data.redis.port}")
@@ -60,7 +54,7 @@ public class RedisConfig {
     }
     
     @Bean
-    public MessageListenerAdapter listenerAdapter() {
+    public MessageListenerAdapter listenerAdapter(RedisSubscriber redisSubscriber) {
         return new MessageListenerAdapter(redisSubscriber, "onMessage");
     }
 }
