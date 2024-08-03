@@ -52,7 +52,7 @@ public class WebSecurityConfig {
             authorizeHttpRequests
                 .requestMatchers(PathRequest.toStaticResources().atCommonLocations()).permitAll()
                 .requestMatchers("/api/users/signup", "/api/users/login", "/api/users/reissue-token").permitAll()
-                .requestMatchers("/api/teams/myteam/ws/**").permitAll()
+                .requestMatchers("/ws/**").permitAll()
                 .anyRequest().authenticated()
         );
         
