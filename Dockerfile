@@ -27,6 +27,15 @@ WORKDIR /app
 # Copy the built JAR file from the build stage
 COPY --from=build /app/build/libs/*.jar app.jar
 
+# Install Python
+RUN apt-get update && \
+    apt-get install -y python3 python3-pip
+
+# Install Node.js and npm (for JavaScript)
+RUN apt-get install -y curl && \
+    curl -fsSL https://deb.nodesource.com/setup_18.x | bash - && \
+    apt-get install -y nodejs
+
 # Expose the application port
 EXPOSE 8080
 
