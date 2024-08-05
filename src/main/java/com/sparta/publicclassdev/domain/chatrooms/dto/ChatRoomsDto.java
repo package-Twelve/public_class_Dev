@@ -18,14 +18,16 @@ public class ChatRoomsDto {
     private String sender;
     private Long teamsId;
     private LocalDateTime timestamp;
+    private String username;
     
     @Builder
-    public ChatRoomsDto(MessageType type, String content, String sender, Long teamsId, LocalDateTime timestamp) {
+    public ChatRoomsDto(MessageType type, String content, String sender, Long teamsId, LocalDateTime timestamp, String username) {
         this.type = type;
         this.content = content;
         this.sender = sender;
         this.teamsId = teamsId;
         this.timestamp = timestamp;
+        this.username = username;
     }
     
     public ChatRoomsDto withTimestamp(LocalDateTime timestamp) {
@@ -35,6 +37,7 @@ public class ChatRoomsDto {
             .sender(this.sender)
             .teamsId(this.teamsId)
             .timestamp(timestamp)
+            .username(this.username)
             .build();
     }
 }

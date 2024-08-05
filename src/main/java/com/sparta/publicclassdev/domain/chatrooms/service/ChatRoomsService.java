@@ -48,7 +48,10 @@ public class ChatRoomsService {
             .users(users)
             .chatRooms(chatRooms)
             .build();
+        
+        log.info("Saving message: {}", messages);
         messagesRepository.save(messages);
+        log.info("Message saved with ID: {}", messages.getId());
         
         MessagesDto savedMessagesDto = MessagesDto.builder()
             .id(messages.getId())
@@ -57,7 +60,8 @@ public class ChatRoomsService {
             .teamsId(messages.getId())
             .timestamp(messages.getCreatedAt())
             .build();
-        
+        String messageJson = objectMapper.writeValueAsString(savedMessagesDto);
+        log.info("Sending message to Redis: {}", messageJson);
         redisTemplate.convertAndSend(channelTopic.getTopic(), objectMapper.writeValueAsString(savedMessagesDto));
     }
     
@@ -69,9 +73,10 @@ public class ChatRoomsService {
             .type(MessageType.JOIN)
             .sender(chatRoomsDto.getSender())
             .teamsId(chatRoomsDto.getTeamsId())
-            .content(chatRoomsDto.getSender() + "님이 입장하셨습니다.")
+            .content(chatRoomsDto.getUsername() + "님이 입장하셨습니다.")
             .timestamp(LocalDateTime.now())
             .build();
+        log.info("Sending join message to Redis: {}", joinMessage);
         redisTemplate.convertAndSend(channelTopic.getTopic(), objectMapper.writeValueAsString(joinMessage));
     }
     

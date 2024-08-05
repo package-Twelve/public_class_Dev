@@ -14,13 +14,15 @@ public class MessagesDto {
     private String sender;
     private Long teamsId;
     private LocalDateTime timestamp;
+    private String username;
     
     @Builder
-    public MessagesDto(Long id, String content, String sender, Long teamsId, LocalDateTime timestamp) {
+    public MessagesDto(Long id, String content, String sender, Long teamsId, LocalDateTime timestamp, String username) {
         this.id = id;
         this.content = content;
         this.sender = sender;
         this.teamsId = teamsId;
         this.timestamp = timestamp;
+        this.username = username;
     }
 }

@@ -17,8 +17,11 @@ public class RedisSubscriber {
     
     public void onMessage(String message) {
         try {
+            log.info("Received message from Redis: {}", message);
             MessagesDto messagesDto = objectMapper.readValue(message, MessagesDto.class);
-            messagingTemplate.convertAndSend("/topic/chatrooms/${teamsId}" + messagesDto.getTeamsId(), messagesDto);
+            String destination = String.format("/topic/chatrooms/%s", messagesDto.getTeamsId());
+            log.info("Sending WebSocket message to destination: {}, message: {}", destination, messagesDto);
+            messagingTemplate.convertAndSend(destination, messagesDto);
         } catch (Exception e) {
             log.error("Exception while processing redis message: {}", e.getMessage());
         }
