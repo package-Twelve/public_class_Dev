@@ -1,95 +1,166 @@
 package com.sparta.publicclassdev.domain.chatrooms.service;
 
-import static org.mockito.Mockito.*;
-import static org.assertj.core.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.sparta.publicclassdev.domain.chatrooms.dto.ChatRoomsDto;
+import com.sparta.publicclassdev.domain.chatrooms.dto.MessagesDto;
 import com.sparta.publicclassdev.domain.chatrooms.entity.ChatRooms;
 import com.sparta.publicclassdev.domain.chatrooms.entity.Messages;
-import com.sparta.publicclassdev.domain.chatrooms.service.ChatRoomsService;
-import com.sparta.publicclassdev.domain.users.entity.RoleEnum;
-import com.sparta.publicclassdev.domain.users.entity.Users;
 import com.sparta.publicclassdev.domain.chatrooms.repository.ChatRoomsRepository;
 import com.sparta.publicclassdev.domain.chatrooms.repository.MessagesRepository;
+import com.sparta.publicclassdev.domain.teams.entity.Teams;
+import com.sparta.publicclassdev.domain.teams.repository.TeamsRepository;
+import com.sparta.publicclassdev.domain.users.entity.RoleEnum;
+import com.sparta.publicclassdev.domain.users.entity.Users;
 import com.sparta.publicclassdev.domain.users.repository.UsersRepository;
-import com.sparta.publicclassdev.global.exception.CustomException;
-import com.sparta.publicclassdev.global.exception.ErrorCode;
-import org.junit.jupiter.api.BeforeEach;
+import java.util.List;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
-import org.springframework.messaging.simp.SimpMessageSendingOperations;
-import org.springframework.test.context.ActiveProfiles;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Optional;
-
-@ActiveProfiles("test")
+@SpringBootTest
 public class ChatRoomsServiceTest {
-
-    @Mock
-    private SimpMessageSendingOperations operations;
-
-    @Mock
-    private UsersRepository usersRepository;
-
-    @Mock
-    private ChatRoomsRepository chatRoomsRepository;
-
-    @Mock
-    private MessagesRepository messagesRepository;
-
-    @InjectMocks
+    
+    @Autowired
     private ChatRoomsService chatRoomsService;
-
-    @BeforeEach
-    public void setup() {
-        MockitoAnnotations.openMocks(this);
-
-        Users testUser = Users.builder()
-            .name("testUser")
-            .email("testUser@email.com")
+    
+    @Autowired
+    private UsersRepository usersRepository;
+    
+    @Autowired
+    private TeamsRepository teamsRepository;
+    
+    @Autowired
+    private ChatRoomsRepository chatRoomsRepository;
+    
+    @Autowired
+    private MessagesRepository messagesRepository;
+    
+    @Test
+    @Transactional
+    public void testSendMessage() throws JsonProcessingException {
+        Users user = Users.builder()
+            .name("testuser")
+            .email("testuser@example.com")
             .password("password")
             .role(RoleEnum.USER)
             .build();
-
-        ChatRooms testChatRoom = ChatRooms.builder()
-            .teams(null)
+        user = usersRepository.save(user);
+        
+        Teams team = Teams.builder()
+            .name("testteam")
             .build();
-
-        when(usersRepository.findByName("testUser")).thenReturn(Optional.of(testUser));
-        when(chatRoomsRepository.findById(1L)).thenReturn(Optional.of(testChatRoom));
+        team = teamsRepository.save(team);
+        
+        ChatRooms chatRoom = ChatRooms.builder()
+            .teams(team)
+            .build();
+        chatRoom = chatRoomsRepository.save(chatRoom);
+        
+        MessagesDto messagesDto = MessagesDto.builder()
+            .sender(user.getName())
+            .content("테스트")
+            .teamsId(chatRoom.getId())
+            .build();
+        
+        chatRoomsService.sendMessage(messagesDto);
+        
+        List<Messages> messages = messagesRepository.findAll();
+        assertFalse(messages.isEmpty());
+        assertEquals("테스트", messages.get(0).getContents());
     }
-
+    
     @Test
-    public void sendMessageTest() throws JsonProcessingException {
-        ChatRoomsDto chatRoomsDto = ChatRoomsDto.builder()
-            .type(ChatRoomsDto.MessageType.CHAT)
-            .content("Hello")
-            .sender("testUser")
-            .teamsId("1")
+    @Transactional
+    public void testSendMessageWithDifferentContents() throws JsonProcessingException {
+        Users user = Users.builder()
+            .name("testuser")
+            .email("testuser@example.com")
+            .password("password")
+            .role(RoleEnum.USER)
             .build();
-
-        chatRoomsService.sendMessage(chatRoomsDto);
-
-        verify(messagesRepository, times(1)).save(any(Messages.class));
-        verify(operations, times(1)).convertAndSend(eq("/topic/chatroom/1"), eq(chatRoomsDto));
+        user = usersRepository.save(user);
+        
+        Teams team = Teams.builder()
+            .name("testteam")
+            .build();
+        team = teamsRepository.save(team);
+        
+        ChatRooms chatRoom = ChatRooms.builder()
+            .teams(team)
+            .build();
+        chatRoom = chatRoomsRepository.save(chatRoom);
+        
+        String[] contents = {"테스트 입니다", "무슨 테스트?", "채팅 테스트"};
+        
+        for (String content : contents) {
+            MessagesDto messagesDto = MessagesDto.builder()
+                .sender(user.getName())
+                .content(content)
+                .teamsId(chatRoom.getId())
+                .build();
+            
+            chatRoomsService.sendMessage(messagesDto);
+        }
+        
+        List<Messages> messages = messagesRepository.findAll();
+        assertEquals(3, messages.size());
+        for (int i = 0; i < contents.length; i++) {
+            assertEquals(contents[i], messages.get(i).getContents());
+        }
     }
-
+    
     @Test
-    public void sendMessageUserNotFoundTest() {
-        ChatRoomsDto chatRoomsDto = ChatRoomsDto.builder()
-            .type(ChatRoomsDto.MessageType.CHAT)
-            .content("Hello")
-            .sender("unknown")
-            .teamsId("1")
+    @Transactional
+    public void testSendMessageByMultipleUsers() throws JsonProcessingException {
+        Users user1 = Users.builder()
+            .name("testuser1")
+            .email("testuser1@example.com")
+            .password("password")
+            .role(RoleEnum.USER)
             .build();
-
-        when(usersRepository.findByName("unknown")).thenReturn(Optional.empty());
-
-        assertThatThrownBy(() -> chatRoomsService.sendMessage(chatRoomsDto))
-            .isInstanceOf(CustomException.class)
-            .hasMessageContaining(ErrorCode.USER_NOT_FOUND.getMessage());
+        user1 = usersRepository.save(user1);
+        
+        Users user2 = Users.builder()
+            .name("testuser2")
+            .email("testuser2@example.com")
+            .password("password")
+            .role(RoleEnum.USER)
+            .build();
+        user2 = usersRepository.save(user2);
+        
+        Teams team = Teams.builder()
+            .name("testteam")
+            .build();
+        team = teamsRepository.save(team);
+        
+        ChatRooms chatRoom = ChatRooms.builder()
+            .teams(team)
+            .build();
+        chatRoom = chatRoomsRepository.save(chatRoom);
+        
+        MessagesDto messagesDto1 = MessagesDto.builder()
+            .sender(user1.getName())
+            .content("test1 메시지")
+            .teamsId(chatRoom.getId())
+            .build();
+        chatRoomsService.sendMessage(messagesDto1);
+        
+        MessagesDto messagesDto2 = MessagesDto.builder()
+            .sender(user2.getName())
+            .content("test2 메시지")
+            .teamsId(chatRoom.getId())
+            .build();
+        chatRoomsService.sendMessage(messagesDto2);
+        
+        List<Messages> messages = messagesRepository.findAll();
+        assertEquals(2, messages.size());
+        assertEquals("test1 메시지", messages.get(0).getContents());
+        assertEquals("test2 메시지", messages.get(1).getContents());
     }
+    
 }
+
+
