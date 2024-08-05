@@ -3,6 +3,7 @@ package com.sparta.publicclassdev.domain.codekatas.entity;
 import com.sparta.publicclassdev.domain.coderuns.entity.CodeRuns;
 import com.sparta.publicclassdev.domain.winners.entity.Winners;
 import com.sparta.publicclassdev.global.entity.Timestamped;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -33,7 +34,7 @@ public class CodeKatas extends Timestamped {
 
     private LocalDate markDate;
     
-    @OneToMany(mappedBy = "codeKatas")
+    @OneToMany(mappedBy = "codeKatas", cascade = CascadeType.REMOVE)
     private List<CodeRuns> codeRuns;
 
     @Builder
