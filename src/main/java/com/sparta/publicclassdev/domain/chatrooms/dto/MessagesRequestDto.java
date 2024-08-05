@@ -1,26 +1,25 @@
 package com.sparta.publicclassdev.domain.chatrooms.dto;
 
-import java.time.LocalDateTime;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Getter
 @NoArgsConstructor
-public class MessagesDto {
+public class MessagesRequestDto {
     
-    private Long id;
     private String content;
     private String sender;
     private Long teamsId;
-    private LocalDateTime timestamp;
+    private String timestamp;
+    private String username;
     
     @Builder
-    public MessagesDto(Long id, String content, String sender, Long teamsId, LocalDateTime timestamp) {
-        this.id = id;
+    public MessagesRequestDto(String content, String sender, Long teamsId, String timestamp, String username) {
         this.content = content;
         this.sender = sender;
         this.teamsId = teamsId;
         this.timestamp = timestamp;
+        this.username = username;
     }
 }
