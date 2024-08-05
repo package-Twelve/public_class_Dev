@@ -4,7 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.sparta.publicclassdev.domain.chatrooms.dto.MessagesDto;
+import com.sparta.publicclassdev.domain.chatrooms.dto.MessagesRequestDto;
 import com.sparta.publicclassdev.domain.chatrooms.entity.ChatRooms;
 import com.sparta.publicclassdev.domain.chatrooms.entity.Messages;
 import com.sparta.publicclassdev.domain.chatrooms.repository.ChatRoomsRepository;
@@ -59,13 +59,13 @@ public class ChatRoomsServiceTest {
             .build();
         chatRoom = chatRoomsRepository.save(chatRoom);
         
-        MessagesDto messagesDto = MessagesDto.builder()
+        MessagesRequestDto messagesRequestDto = MessagesRequestDto.builder()
             .sender(user.getName())
             .content("테스트")
             .teamsId(chatRoom.getId())
             .build();
         
-        chatRoomsService.sendMessage(messagesDto);
+        chatRoomsService.sendMessage(messagesRequestDto);
         
         List<Messages> messages = messagesRepository.findAll();
         assertFalse(messages.isEmpty());
@@ -96,13 +96,13 @@ public class ChatRoomsServiceTest {
         String[] contents = {"테스트 입니다", "무슨 테스트?", "채팅 테스트"};
         
         for (String content : contents) {
-            MessagesDto messagesDto = MessagesDto.builder()
+            MessagesRequestDto messagesRequestDto = MessagesRequestDto.builder()
                 .sender(user.getName())
                 .content(content)
                 .teamsId(chatRoom.getId())
                 .build();
             
-            chatRoomsService.sendMessage(messagesDto);
+            chatRoomsService.sendMessage(messagesRequestDto);
         }
         
         List<Messages> messages = messagesRepository.findAll();
@@ -141,19 +141,19 @@ public class ChatRoomsServiceTest {
             .build();
         chatRoom = chatRoomsRepository.save(chatRoom);
         
-        MessagesDto messagesDto1 = MessagesDto.builder()
+        MessagesRequestDto messagesRequestDto1 = MessagesRequestDto.builder()
             .sender(user1.getName())
             .content("test1 메시지")
             .teamsId(chatRoom.getId())
             .build();
-        chatRoomsService.sendMessage(messagesDto1);
+        chatRoomsService.sendMessage(messagesRequestDto1);
         
-        MessagesDto messagesDto2 = MessagesDto.builder()
+        MessagesRequestDto messagesRequestDto2 = MessagesRequestDto.builder()
             .sender(user2.getName())
             .content("test2 메시지")
             .teamsId(chatRoom.getId())
             .build();
-        chatRoomsService.sendMessage(messagesDto2);
+        chatRoomsService.sendMessage(messagesRequestDto2);
         
         List<Messages> messages = messagesRepository.findAll();
         assertEquals(2, messages.size());
