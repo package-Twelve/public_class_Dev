@@ -8,6 +8,7 @@ import com.sparta.publicclassdev.domain.communities.entity.Communities;
 import com.sparta.publicclassdev.domain.communities.repository.CommunitiesRepository;
 import com.sparta.publicclassdev.domain.communitycomments.dto.CommunityCommentResponseDto;
 import com.sparta.publicclassdev.domain.communitycomments.entity.CommunityComments;
+import com.sparta.publicclassdev.domain.users.entity.RoleEnum;
 import com.sparta.publicclassdev.domain.users.entity.Users;
 import com.sparta.publicclassdev.global.exception.CustomException;
 import com.sparta.publicclassdev.global.exception.ErrorCode;
@@ -62,8 +63,10 @@ public class CommunitiesService {
 
     public CommunitiesResponseDto updatePost(Users user, Long communityId, CommunitiesUpdateRequestDto requestDto) {
         Communities community = checkCommunity(communityId);
-        if(!Objects.equals(community.getUser().getId(), user.getId())){
-            throw new CustomException(ErrorCode.NOT_UNAUTHORIZED);
+        if(!user.getRole().equals(RoleEnum.ADMIN)){
+            if(!Objects.equals(community.getUser().getId(), user.getId())){
+                throw new CustomException(ErrorCode.NOT_UNAUTHORIZED);
+            }
         }
 
         community.updateContent(requestDto.getContent());
@@ -74,8 +77,10 @@ public class CommunitiesService {
     public void deletePost(Long communityId, Users user) {
         Communities community = checkCommunity(communityId);
 
-        if(!Objects.equals(community.getUser().getId(), user.getId())){
-            throw new CustomException(ErrorCode.NOT_UNAUTHORIZED);
+        if(!user.getRole().equals(RoleEnum.ADMIN)){
+            if(!Objects.equals(community.getUser().getId(), user.getId())){
+                throw new CustomException(ErrorCode.NOT_UNAUTHORIZED);
+            }
         }
 
         repository.delete(community);
