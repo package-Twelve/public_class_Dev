@@ -14,6 +14,7 @@ import com.sparta.publicclassdev.domain.teams.entity.Teams;
 import com.sparta.publicclassdev.domain.teams.repository.TeamsRepository;
 import com.sparta.publicclassdev.domain.users.entity.Users;
 import com.sparta.publicclassdev.domain.users.repository.UsersRepository;
+import com.sparta.publicclassdev.domain.winners.repository.WinnersRepository;
 import com.sparta.publicclassdev.global.exception.CustomException;
 import com.sparta.publicclassdev.global.exception.ErrorCode;
 import java.util.List;
@@ -34,6 +35,7 @@ public class CodeRunsService {
     private final TeamsRepository teamsRepository;
     private final CodeKatasRepository codeKatasRepository;
     private final UsersRepository usersRepository;
+    private final WinnersRepository winnersRepository;
     
     @Transactional
     public CodeRunsResponseDto runCode(Long teamsId, Long codeKatasId, CodeRunsRequestDto requestDto) {
@@ -53,6 +55,12 @@ public class CodeRunsService {
         codeRunsRepository.save(codeRuns);
         
         return new CodeRunsResponseDto(codeRuns.getId(), codeKatasId, teamsId, users.getId(), responseTime, result, requestDto.getCode(), requestDto.getLanguage());
+    }
+    
+    @Transactional
+    public void deleteCodeRun(Long codeRunId) {
+        winnersRepository.deleteByCodeRunsId(codeRunId);
+        codeRunsRepository.deleteById(codeRunId);
     }
     
     private long runTime(String result) {
