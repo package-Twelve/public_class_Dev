@@ -199,7 +199,7 @@ public class CodeReviewsService {
   public void validateOwnership(CodeReviews codeReviews, Users user) {
     Users writer = codeReviews.getUser();
 
-    if (!writer.getRole().equals(RoleEnum.ADMIN)) {
+    if (!user.getRole().equals(RoleEnum.ADMIN)) {
       if (!writer.getId().equals(user.getId())) {
         throw new CustomException(ErrorCode.NOT_UNAUTHORIZED);
       }

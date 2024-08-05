@@ -103,7 +103,7 @@ public class CodeReviewCommentsService {
   public void validateOwnership(CodeReviewComments codeReviewComments, Users user) {
     Users writer = codeReviewComments.getUser();
 
-    if (!writer.getRole().equals(RoleEnum.ADMIN)) {
+    if (!user.getRole().equals(RoleEnum.ADMIN)) {
       if (!writer.getId().equals(user.getId())) {
         throw new CustomException(ErrorCode.NOT_UNAUTHORIZED);
       }
