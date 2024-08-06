@@ -1,6 +1,7 @@
 package com.sparta.publicclassdev.domain.codekatas.service;
 
-import com.sparta.publicclassdev.domain.codekatas.dto.CodeKatasDto;
+import com.sparta.publicclassdev.domain.codekatas.dto.CodeKatasRequestDto;
+import com.sparta.publicclassdev.domain.codekatas.dto.CodeKatasResponseDto;
 import com.sparta.publicclassdev.domain.codekatas.entity.CodeKatas;
 import com.sparta.publicclassdev.domain.codekatas.repository.CodeKatasRepository;
 import com.sparta.publicclassdev.domain.users.entity.RoleEnum;
@@ -12,7 +13,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Random;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -25,32 +25,30 @@ public class CodeKatasService {
     private final CodeKatasRepository codeKatasRepository;
     private final JwtUtil jwtUtil;
     
-    public CodeKatasDto createCodeKata(HttpServletRequest request, CodeKatasDto codeKatasDto) {
+    public CodeKatasResponseDto createCodeKata(HttpServletRequest request, CodeKatasRequestDto codeKatasResponseDto) {
         checkAdminRole(request);
         CodeKatas codeKatas = CodeKatas.builder()
-            .title(codeKatasDto.getTitle())
-            .contents(codeKatasDto.getContents())
+            .title(codeKatasResponseDto.getTitle())
+            .contents(codeKatasResponseDto.getContents())
             .markDate(null)
             .build();
         
         codeKatasRepository.save(codeKatas);
         
-        return new CodeKatasDto(codeKatas.getId(), codeKatas.getTitle(), codeKatasDto.getContents(),
-            codeKatas.getMarkDate());
+        return new CodeKatasResponseDto(codeKatas.getId(), codeKatas.getTitle(), codeKatasResponseDto.getContents(), codeKatas.getMarkDate());
     }
     
-    public CodeKatasDto getCodeKata(HttpServletRequest request, Long id) {
+    public CodeKatasResponseDto getCodeKata(HttpServletRequest request, Long id) {
         checkAdminRole(request);
         CodeKatas codeKatas = codeKatasRepository.findById(id)
             .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_CODEKATA));
-        return new CodeKatasDto(codeKatas.getId(), codeKatas.getTitle(), codeKatas.getContents(),
-            codeKatas.getMarkDate());
+        return new CodeKatasResponseDto(codeKatas.getId(), codeKatas.getTitle(), codeKatas.getContents(), codeKatas.getMarkDate());
     }
     
-    public Page<CodeKatasDto> getAllCodeKatas(HttpServletRequest request, Pageable pageable) {
+    public Page<CodeKatasResponseDto> getAllCodeKatas(HttpServletRequest request, Pageable pageable) {
         checkAdminRole(request);
         Page<CodeKatas> codeKatasPage = codeKatasRepository.findAll(pageable);
-        return codeKatasPage.map(kata -> new CodeKatasDto(kata.getId(), kata.getTitle(), kata.getContents(), kata.getMarkDate()));
+        return codeKatasPage.map(kata -> new CodeKatasResponseDto(kata.getId(), kata.getTitle(), kata.getContents(), kata.getMarkDate()));
     }
     
     public void deleteCodeKata(HttpServletRequest request, Long id) {
@@ -60,31 +58,29 @@ public class CodeKatasService {
         codeKatasRepository.delete(codeKatas);
     }
     
-    public CodeKatasDto updateCodeKata(HttpServletRequest request, Long id, CodeKatasDto codeKatasDto) {
+    public CodeKatasResponseDto updateCodeKata(HttpServletRequest request, Long id, CodeKatasRequestDto codeKatasRequestDto) {
         checkAdminRole(request);
         CodeKatas codeKatas = codeKatasRepository.findById(id)
             .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_CODEKATA));
         
-        codeKatas.updateContents(codeKatasDto.getTitle(), codeKatasDto.getContents());
+        codeKatas.updateContents(codeKatasRequestDto.getTitle(), codeKatasRequestDto.getContents());
         codeKatas.markCodeKatas(null);
         codeKatasRepository.save(codeKatas);
         
-        return new CodeKatasDto(codeKatasDto.getId(), codeKatasDto.getTitle(), codeKatasDto.getContents(),
-            codeKatas.getMarkDate());
+        return new CodeKatasResponseDto(codeKatas.getId(), codeKatas.getTitle(), codeKatas.getContents(), codeKatas.getMarkDate());
     }
     
-    public CodeKatasDto getTodayCodeKata() {
-        List<CodeKatas> markedKatas = codeKatasRepository.findByMarkDate(LocalDate.now());
-        if (!markedKatas.isEmpty()) {
-            CodeKatas codeKatas = markedKatas.get(0);
-            return new CodeKatasDto(codeKatas.getId(), codeKatas.getTitle(), codeKatas.getContents(),
-                codeKatas.getMarkDate());
+    public CodeKatasResponseDto getTodayCodeKata() {
+        List<CodeKatas> markKatas = codeKatasRepository.findByMarkDate(LocalDate.now());
+        if (!markKatas.isEmpty()) {
+            CodeKatas codeKatas = markKatas.get(0);
+            return new CodeKatasResponseDto(codeKatas.getId(), codeKatas.getTitle(), codeKatas.getContents(), codeKatas.getMarkDate());
         } else {
             return createRandomCodeKata();
         }
     }
     
-    public CodeKatasDto createRandomCodeKata() {
+    public CodeKatasResponseDto createRandomCodeKata() {
         List<CodeKatas> unmarkedKatas = codeKatasRepository.findByMarkDateIsNull();
         if (unmarkedKatas.isEmpty()) {
             throw new CustomException(ErrorCode.NOT_FOUND_CODEKATA);
@@ -94,8 +90,7 @@ public class CodeKatasService {
         codeKatas.markCodeKatas(LocalDate.now());
         codeKatasRepository.save(codeKatas);
         
-        return new CodeKatasDto(codeKatas.getId(), codeKatas.getTitle(), codeKatas.getContents(),
-            codeKatas.getMarkDate());
+        return new CodeKatasResponseDto(codeKatas.getId(), codeKatas.getTitle(), codeKatas.getContents(), codeKatas.getMarkDate());
     }
     
     private void checkAdminRole(HttpServletRequest request) {
