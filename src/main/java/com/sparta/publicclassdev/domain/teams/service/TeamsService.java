@@ -168,7 +168,8 @@ public class TeamsService {
         return new TeamResponseDto(teams, teamMembers);
     }
     
-    public List<TeamResponseDto> getAllTeams() {
+    public List<TeamResponseDto> getAllTeams(HttpServletRequest request) {
+        checkAdminRole(request);
         List<Teams> teamsList = teamsRepository.findAll();
         return teamsList.stream()
             .map(team -> {
@@ -178,6 +179,17 @@ public class TeamsService {
                 return new TeamResponseDto(team, teamMembers);
             })
             .collect(Collectors.toList());
+    }
+    
+    public void deleteTeamById(Long id, HttpServletRequest request) {
+        checkAdminRole(request);
+        Teams teams = teamsRepository.findById(id)
+            .orElseThrow(() -> new CustomException(ErrorCode.TEAM_NOT_FOUND));
+        chatRoomsRepository.deleteAllByTeamsId(teams.getId());
+        codeRunsRepository.deleteAllByTeams(teams);
+        teamUsersRepository.deleteAllByTeams(teams);
+        winnersRepository.deleteAllByTeams(teams);
+        teamsRepository.delete(teams);
     }
     
     @Transactional
@@ -194,7 +206,6 @@ public class TeamsService {
         }
         
         resetAutoIncrementColumns();
-        
         entityManager.createNativeQuery("SET FOREIGN_KEY_CHECKS = 1").executeUpdate();
     }
     
@@ -208,10 +219,11 @@ public class TeamsService {
         entityManager.close();
     }
     
-    public void checkAdminRole(HttpServletRequest request) {
+    private void checkAdminRole(HttpServletRequest request) {
         String token = jwtUtil.getJwtFromHeader(request);
         Claims claims = jwtUtil.getUserInfoFromToken(token);
         String role = "ROLE_" + claims.get("auth").toString().trim();
+        System.out.println("Role from JWT: " + role); // 디버깅 로그 추가
         if (!RoleEnum.ADMIN.getAuthority().equals(role)) {
             throw new CustomException(ErrorCode.NOT_UNAUTHORIZED);
         }
