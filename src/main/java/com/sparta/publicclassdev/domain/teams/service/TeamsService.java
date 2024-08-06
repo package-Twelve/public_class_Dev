@@ -5,21 +5,22 @@ import com.sparta.publicclassdev.domain.chatrooms.entity.ChatRooms;
 import com.sparta.publicclassdev.domain.chatrooms.repository.ChatRoomUsersRepository;
 import com.sparta.publicclassdev.domain.chatrooms.repository.ChatRoomsRepository;
 import com.sparta.publicclassdev.domain.coderuns.repository.CodeRunsRepository;
+import com.sparta.publicclassdev.domain.teams.dto.TeamRequestDto;
 import com.sparta.publicclassdev.domain.teams.dto.TeamResponseDto;
 import com.sparta.publicclassdev.domain.teams.entity.TeamUsers;
 import com.sparta.publicclassdev.domain.teams.entity.Teams;
 import com.sparta.publicclassdev.domain.teams.repository.TeamUsersRepository;
 import com.sparta.publicclassdev.domain.teams.repository.TeamsRepository;
+import com.sparta.publicclassdev.domain.users.entity.RoleEnum;
 import com.sparta.publicclassdev.domain.users.entity.Users;
 import com.sparta.publicclassdev.domain.users.repository.UsersRepository;
 import com.sparta.publicclassdev.domain.winners.repository.WinnersRepository;
 import com.sparta.publicclassdev.global.exception.CustomException;
 import com.sparta.publicclassdev.global.exception.ErrorCode;
+import com.sparta.publicclassdev.global.security.JwtUtil;
+import io.jsonwebtoken.Claims;
 import jakarta.persistence.EntityManager;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -27,6 +28,9 @@ import java.util.Random;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -40,6 +44,7 @@ public class TeamsService {
     private final CodeRunsRepository codeRunsRepository;
     private final WinnersRepository winnersRepository;
     private final EntityManager entityManager;
+    private final JwtUtil jwtUtil;
     
     private static final List<String> Modifier = List.of(
         "Agile", "Brave", "Calm", "Daring", "Eager", "Fierce", "Gentle", "Heroic", "Jolly", "Keen"
@@ -65,8 +70,8 @@ public class TeamsService {
     }
     
     @Transactional
-    public TeamResponseDto createAndMatchTeam(String email) {
-        Users user = validateUserByEmail(email);
+    public TeamResponseDto createAndMatchTeam(TeamRequestDto requestDto) {
+        Users user = validateUserByEmail(requestDto.getEmail());
         checkUserInTeam(user);
         
         List<Users> waitUser = new ArrayList<>();
@@ -129,7 +134,6 @@ public class TeamsService {
         }
     }
     
-    @Transactional(readOnly = true)
     public TeamResponseDto getTeamByUserEmail(String email) {
         Users users = validateUserByEmail(email);
         
@@ -153,7 +157,6 @@ public class TeamsService {
             .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
     }
     
-    @Transactional(readOnly = true)
     public TeamResponseDto getTeamById(Long teamsId) {
         Teams teams = teamsRepository.findById(teamsId)
             .orElseThrow(() -> new CustomException(ErrorCode.TEAM_NOT_FOUND));
@@ -163,6 +166,18 @@ public class TeamsService {
             .collect(Collectors.toList());
         
         return new TeamResponseDto(teams, teamMembers);
+    }
+    
+    public List<TeamResponseDto> getAllTeams() {
+        List<Teams> teamsList = teamsRepository.findAll();
+        return teamsList.stream()
+            .map(team -> {
+                List<Users> teamMembers = team.getTeamUsers().stream()
+                    .map(TeamUsers::getUsers)
+                    .collect(Collectors.toList());
+                return new TeamResponseDto(team, teamMembers);
+            })
+            .collect(Collectors.toList());
     }
     
     @Transactional
@@ -191,5 +206,14 @@ public class TeamsService {
         entityManager.createNativeQuery("ALTER TABLE coderuns AUTO_INCREMENT = 1").executeUpdate();
         entityManager.createNativeQuery("ALTER TABLE chatroomusers AUTO_INCREMENT = 1").executeUpdate();
         entityManager.close();
+    }
+    
+    public void checkAdminRole(HttpServletRequest request) {
+        String token = jwtUtil.getJwtFromHeader(request);
+        Claims claims = jwtUtil.getUserInfoFromToken(token);
+        String role = "ROLE_" + claims.get("auth").toString().trim();
+        if (!RoleEnum.ADMIN.getAuthority().equals(role)) {
+            throw new CustomException(ErrorCode.NOT_UNAUTHORIZED);
+        }
     }
 }
