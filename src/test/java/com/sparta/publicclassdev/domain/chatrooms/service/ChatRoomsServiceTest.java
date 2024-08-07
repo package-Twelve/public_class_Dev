@@ -1,29 +1,20 @@
 package com.sparta.publicclassdev.domain.chatrooms.service;
 
-import static org.mockito.Mockito.*;
-import static org.assertj.core.api.Assertions.*;
+import static org.mockito.Mockito.when;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.sparta.publicclassdev.domain.chatrooms.dto.ChatRoomsDto;
 import com.sparta.publicclassdev.domain.chatrooms.entity.ChatRooms;
-import com.sparta.publicclassdev.domain.chatrooms.entity.Messages;
-import com.sparta.publicclassdev.domain.chatrooms.service.ChatRoomsService;
-import com.sparta.publicclassdev.domain.users.entity.RoleEnum;
-import com.sparta.publicclassdev.domain.users.entity.Users;
 import com.sparta.publicclassdev.domain.chatrooms.repository.ChatRoomsRepository;
 import com.sparta.publicclassdev.domain.chatrooms.repository.MessagesRepository;
+import com.sparta.publicclassdev.domain.users.entity.RoleEnum;
+import com.sparta.publicclassdev.domain.users.entity.Users;
 import com.sparta.publicclassdev.domain.users.repository.UsersRepository;
-import com.sparta.publicclassdev.global.exception.CustomException;
-import com.sparta.publicclassdev.global.exception.ErrorCode;
+import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.messaging.simp.SimpMessageSendingOperations;
 import org.springframework.test.context.ActiveProfiles;
-
-import java.util.Optional;
 
 @ActiveProfiles("test")
 public class ChatRoomsServiceTest {
