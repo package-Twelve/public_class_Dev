@@ -24,6 +24,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Random;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.locks.ReentrantLock;
@@ -157,6 +158,7 @@ public class TeamsService {
             .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
     }
     
+    @Transactional(readOnly = true)
     public TeamResponseDto getTeamById(Long teamsId) {
         Teams teams = teamsRepository.findById(teamsId)
             .orElseThrow(() -> new CustomException(ErrorCode.TEAM_NOT_FOUND));
@@ -168,19 +170,24 @@ public class TeamsService {
         return new TeamResponseDto(teams, teamMembers);
     }
     
+    @Transactional(readOnly = true)
     public List<TeamResponseDto> getAllTeams(HttpServletRequest request) {
         checkAdminRole(request);
         List<Teams> teamsList = teamsRepository.findAll();
+        
         return teamsList.stream()
             .map(team -> {
-                List<Users> teamMembers = team.getTeamUsers().stream()
+                List<Users> teamMembers = team.getTeamUsers() != null ? team.getTeamUsers().stream()
+                    .filter(Objects::nonNull)
                     .map(TeamUsers::getUsers)
-                    .collect(Collectors.toList());
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toList()) : Collections.emptyList();
                 return new TeamResponseDto(team, teamMembers);
             })
             .collect(Collectors.toList());
     }
     
+    @Transactional
     public void deleteTeamById(Long id, HttpServletRequest request) {
         checkAdminRole(request);
         Teams teams = teamsRepository.findById(id)
@@ -223,7 +230,6 @@ public class TeamsService {
         String token = jwtUtil.getJwtFromHeader(request);
         Claims claims = jwtUtil.getUserInfoFromToken(token);
         String role = "ROLE_" + claims.get("auth").toString().trim();
-        System.out.println("Role from JWT: " + role); // 디버깅 로그 추가
         if (!RoleEnum.ADMIN.getAuthority().equals(role)) {
             throw new CustomException(ErrorCode.NOT_UNAUTHORIZED);
         }

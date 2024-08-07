@@ -4,6 +4,7 @@ import com.sparta.publicclassdev.domain.teams.entity.Teams;
 import com.sparta.publicclassdev.domain.users.dto.ProfileResponseDto;
 import com.sparta.publicclassdev.domain.users.entity.Users;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import lombok.Builder;
 import lombok.Getter;
@@ -21,6 +22,7 @@ public class TeamResponseDto {
         this.id = teams.getId();
         this.name = teams.getName();
         this.teamMembers = teamMembers.stream()
+            .filter(Objects::nonNull)
             .map(Users::getName)
             .collect(Collectors.toList());
     }
