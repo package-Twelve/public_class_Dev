@@ -1,30 +1,29 @@
 package com.sparta.publicclassdev.domain.teams.dto;
 
 import com.sparta.publicclassdev.domain.teams.entity.Teams;
+import com.sparta.publicclassdev.domain.users.dto.ProfileResponseDto;
 import com.sparta.publicclassdev.domain.users.entity.Users;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
+import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Getter
+@NoArgsConstructor
 public class TeamResponseDto {
-
     private Long id;
-    private String teamsName;
+    private String name;
     private List<String> teamMembers;
-    private LocalDateTime createdAt;
-    private LocalDateTime modifiedAt;
-
-    public TeamResponseDto(Teams teams, List<Users> users) {
-
+    
+    @Builder
+    public TeamResponseDto(Teams teams, List<Users> teamMembers) {
         this.id = teams.getId();
-        this.teamsName = teams.getName();
-        this.teamMembers = users.stream()
+        this.name = teams.getName();
+        this.teamMembers = teamMembers.stream()
+            .filter(Objects::nonNull)
             .map(Users::getName)
             .collect(Collectors.toList());
-        this.createdAt = teams.getCreatedAt();
-        this.modifiedAt = teams.getModifiedAt();
     }
 }

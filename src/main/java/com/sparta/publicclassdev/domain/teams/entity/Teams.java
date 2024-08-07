@@ -34,7 +34,7 @@ public class Teams extends Timestamped {
     @OneToMany(mappedBy = "teams", orphanRemoval = true, cascade = CascadeType.ALL)
     private List<ChatRooms> chatRooms;
     
-    @OneToMany(mappedBy = "teams", orphanRemoval = true, cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "teams", cascade = CascadeType.ALL)
     private List<Winners> winners;
     
     @OneToMany(mappedBy = "teams", orphanRemoval = true, cascade = CascadeType.ALL)

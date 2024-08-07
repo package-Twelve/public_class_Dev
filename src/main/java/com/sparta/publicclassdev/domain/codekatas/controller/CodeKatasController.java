@@ -1,11 +1,11 @@
 package com.sparta.publicclassdev.domain.codekatas.controller;
 
-import com.sparta.publicclassdev.domain.codekatas.dto.CodeKatasDto;
+import com.sparta.publicclassdev.domain.codekatas.dto.CodeKatasRequestDto;
+import com.sparta.publicclassdev.domain.codekatas.dto.CodeKatasResponseDto;
 import com.sparta.publicclassdev.domain.codekatas.service.CodeKatasService;
 import com.sparta.publicclassdev.global.dto.DataResponse;
 import com.sparta.publicclassdev.global.dto.MessageResponse;
 import jakarta.servlet.http.HttpServletRequest;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -29,33 +29,31 @@ public class CodeKatasController {
     private final CodeKatasService codeKatasService;
     
     @PostMapping("/createcodekata")
-    public ResponseEntity<DataResponse<CodeKatasDto>> createCodeKata(HttpServletRequest request, @RequestBody CodeKatasDto codeKatasDto) {
-        CodeKatasDto codeKatas = codeKatasService.createCodeKata(request, codeKatasDto);
+    public ResponseEntity<DataResponse<CodeKatasResponseDto>> createCodeKata(HttpServletRequest request, @RequestBody CodeKatasRequestDto requestDto) {
+        CodeKatasResponseDto response = codeKatasService.createCodeKata(request, requestDto);
         return ResponseEntity.status(HttpStatus.CREATED)
-            .body(new DataResponse<>(201, "코드카타 생성 성공", codeKatas));
+            .body(new DataResponse<>(201, "코드카타 생성 성공", response));
     }
     
     @GetMapping("/all")
-    public ResponseEntity<DataResponse<Page<CodeKatasDto>>> getAllCodeKata(
-        HttpServletRequest request,
-        @PageableDefault(size = 6) Pageable pageable) {
-        Page<CodeKatasDto> codeKatas = codeKatasService.getAllCodeKatas(request, pageable);
+    public ResponseEntity<DataResponse<Page<CodeKatasResponseDto>>> getAllCodeKata(HttpServletRequest request, @PageableDefault(size = 6) Pageable pageable) {
+        Page<CodeKatasResponseDto> codeKatas = codeKatasService.getAllCodeKatas(request, pageable);
         return ResponseEntity.status(HttpStatus.OK)
             .body(new DataResponse<>(200, "전체 코드카타 조회 성공", codeKatas));
     }
     
     @GetMapping("/{id}")
-    public ResponseEntity<DataResponse<CodeKatasDto>> getCodeKata(HttpServletRequest request, @PathVariable Long id) {
-        CodeKatasDto codeKatas = codeKatasService.getCodeKata(request, id);
+    public ResponseEntity<DataResponse<CodeKatasResponseDto>> getCodeKata(HttpServletRequest request, @PathVariable Long id) {
+        CodeKatasResponseDto respons = codeKatasService.getCodeKata(request, id);
         return ResponseEntity.status(HttpStatus.OK)
-            .body(new DataResponse<>(200, "코드카타 조회 성공", codeKatas));
+            .body(new DataResponse<>(200, "코드카타 조회 성공", respons));
     }
     
     @PutMapping("/{id}")
-    public ResponseEntity<DataResponse<CodeKatasDto>> updateCodeKata(HttpServletRequest request, @PathVariable Long id, @RequestBody CodeKatasDto codeKatasDto) {
-        CodeKatasDto codeKatas = codeKatasService.updateCodeKata(request, id, codeKatasDto);
+    public ResponseEntity<DataResponse<CodeKatasResponseDto>> updateCodeKata(HttpServletRequest request, @PathVariable Long id, @RequestBody CodeKatasRequestDto requestDto) {
+        CodeKatasResponseDto response = codeKatasService.updateCodeKata(request, id, requestDto);
         return ResponseEntity.status(HttpStatus.OK)
-            .body(new DataResponse<>(200, "코드카타 수정 성공", codeKatas));
+            .body(new DataResponse<>(200, "코드카타 수정 성공", response));
     }
     
     @DeleteMapping("/{id}")
@@ -66,16 +64,16 @@ public class CodeKatasController {
     }
     
     @PostMapping("/create")
-    public ResponseEntity<DataResponse<CodeKatasDto>> createRandomCodeKata(HttpServletRequest request) {
-        CodeKatasDto codeKatas = codeKatasService.createRandomCodeKata();
+    public ResponseEntity<DataResponse<CodeKatasResponseDto>> createRandomCodeKata(HttpServletRequest request) {
+        CodeKatasResponseDto response = codeKatasService.createRandomCodeKata();
         return ResponseEntity.status(HttpStatus.CREATED)
-            .body(new DataResponse<>(201, "랜덤 코드카타 생성 성공", codeKatas));
+            .body(new DataResponse<>(201, "랜덤 코드카타 생성 성공", response));
     }
     
     @GetMapping("/today")
-    public ResponseEntity<DataResponse<CodeKatasDto>> getTodayCodeKata() {
-        CodeKatasDto codeKatas = codeKatasService.getTodayCodeKata();
+    public ResponseEntity<DataResponse<CodeKatasResponseDto>> getTodayCodeKata() {
+        CodeKatasResponseDto response = codeKatasService.getTodayCodeKata();
         return ResponseEntity.status(HttpStatus.OK)
-            .body(new DataResponse<>(200, "오늘의 코드카타 조회 성공", codeKatas));
+            .body(new DataResponse<>(200, "오늘의 코드카타 조회 성공", response));
     }
 }
