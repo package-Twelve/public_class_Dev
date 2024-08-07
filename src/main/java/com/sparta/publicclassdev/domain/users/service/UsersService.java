@@ -1,12 +1,13 @@
 package com.sparta.publicclassdev.domain.users.service;
 
 
-import com.sparta.publicclassdev.domain.community.dto.CommunitiesResponseDto;
-import com.sparta.publicclassdev.domain.community.entity.Communities;
-import com.sparta.publicclassdev.domain.community.repository.CommunitiesRepository;
+import com.sparta.publicclassdev.domain.communities.dto.CommunitiesResponseDto;
+import com.sparta.publicclassdev.domain.communities.entity.Communities;
+import com.sparta.publicclassdev.domain.communities.repository.CommunitiesRepository;
 import com.sparta.publicclassdev.domain.users.dao.UserRedisDao;
 import com.sparta.publicclassdev.domain.users.dto.AuthRequestDto;
 import com.sparta.publicclassdev.domain.users.dto.AuthResponseDto;
+import com.sparta.publicclassdev.domain.users.dto.PasswordRequestDto;
 import com.sparta.publicclassdev.domain.users.dto.PointResponseDto;
 import com.sparta.publicclassdev.domain.users.dto.ProfileRequestDto;
 import com.sparta.publicclassdev.domain.users.dto.ProfileResponseDto;
@@ -99,7 +100,7 @@ public class UsersService {
     public ProfileResponseDto getProfile(Users user) {
         List<Communities> recentCommunities = communitiesRepository.findPostByUserLimit5(user);
         List<CommunitiesResponseDto> recentResponseDto = recentCommunities.stream().map(
-            (communities) -> new CommunitiesResponseDto(communities.getTitle(), communities.getContent(), communities.getCategory()))
+            (communities) -> new CommunitiesResponseDto(communities.getId(), communities.getCreatedAt(), communities.getTitle(), communities.getContent(), communities.getCategory()))
             .toList();
         return new ProfileResponseDto(user, recentResponseDto);
     }
@@ -107,8 +108,7 @@ public class UsersService {
     @Transactional
     public UpdateProfileResponseDto updateProfile(Long id, ProfileRequestDto requestDto) {
         Users user = findById(id);
-        String password = passwordEncoder.encode(requestDto.getPassword());
-        user.updateUsers(requestDto.getName(), password, requestDto.getIntro());
+        user.updateUsers(requestDto.getName(), requestDto.getIntro());
         return new UpdateProfileResponseDto(user);
     }
 
@@ -196,5 +196,12 @@ public class UsersService {
         }
         int newPoint = user.getPoint();
         return new PointResponseDto(newPoint, RankEnum.getRankByPoints(newPoint));
+    }
+
+    @Transactional
+    public void updatePassword(Long id, PasswordRequestDto requestDto) {
+        Users user = findById(id);
+        String password = passwordEncoder.encode(requestDto.getPassword());
+        user.updatePassword(password);
     }
 }

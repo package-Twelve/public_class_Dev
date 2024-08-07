@@ -1,8 +1,7 @@
 package com.sparta.publicclassdev.domain.communitycomments.service;
 
-import com.sparta.publicclassdev.domain.community.dto.CommunitiesResponseDto;
-import com.sparta.publicclassdev.domain.community.entity.Communities;
-import com.sparta.publicclassdev.domain.community.repository.CommunitiesRepository;
+import com.sparta.publicclassdev.domain.communities.entity.Communities;
+import com.sparta.publicclassdev.domain.communities.repository.CommunitiesRepository;
 import com.sparta.publicclassdev.domain.communitycomments.dto.CommunityCommentResponseDto;
 import com.sparta.publicclassdev.domain.communitycomments.dto.CommunityCommentsRequestDto;
 import com.sparta.publicclassdev.domain.communitycomments.entity.CommunityComments;
@@ -11,6 +10,7 @@ import com.sparta.publicclassdev.domain.users.entity.Users;
 import com.sparta.publicclassdev.global.exception.CustomException;
 import com.sparta.publicclassdev.global.exception.ErrorCode;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
@@ -42,7 +42,7 @@ public class CommunityCommentsService {
         Communities community = checkCommunity(communityId);
         CommunityComments comment = checkComment(commentId);
 
-        if(user.equals(comment.getUser())){
+        if(!Objects.equals(comment.getUser().getId(), user.getId())){
             throw new CustomException(ErrorCode.NOT_UNAUTHORIZED);
         }
 
@@ -66,7 +66,7 @@ public class CommunityCommentsService {
         checkCommunity(communityId);
         CommunityComments comment = checkComment(commentId);
 
-        if(user.equals(comment.getUser())){
+        if(!Objects.equals(comment.getUser().getId(), user.getId())){
             throw new CustomException(ErrorCode.NOT_UNAUTHORIZED);
         }
 

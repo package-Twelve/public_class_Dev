@@ -101,21 +101,26 @@ public class JwtUtil {
             return true;
         } catch (SecurityException | MalformedJwtException | SignatureException e) {
             logger.error("Invalid JWT signature, 유효하지 않는 JWT 서명 입니다.");
-            throw new CustomException(ErrorCode.INVALID_TOKEN);
+            return false;
         } catch (ExpiredJwtException e) {
             logger.error("Expired JWT token, 만료된 JWT token 입니다.");
-            throw new CustomException(ErrorCode.TOKEN_EXPIRED);
+            return false;
         } catch (UnsupportedJwtException e) {
             logger.error("Unsupported JWT token, 지원되지 않는 JWT 토큰 입니다.");
-            throw new CustomException(ErrorCode.INVALID_TOKEN);
+            return false;
         } catch (IllegalArgumentException e) {
             logger.error("JWT claims is empty, 잘못된 JWT 토큰 입니다.");
-            throw new CustomException(ErrorCode.INVALID_TOKEN);
+            return false;
         }
     }
 
     public Claims getUserInfoFromToken(String token) {
         return Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token).getBody();
+    }
+    
+    public String getUserEmailFromToken(String token) {
+        Claims claims = getUserInfoFromToken(token);
+        return claims.getSubject();
     }
 
     public Long getExpiration(String token) {

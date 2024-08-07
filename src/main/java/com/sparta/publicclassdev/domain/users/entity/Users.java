@@ -63,10 +63,13 @@ public class Users {
         this.role = role;
     }
 
-    public void updateUsers(String name, String password, String intro) {
+    public void updateUsers(String name, String intro) {
         this.name = name;
-        this.password = password;
         this.intro = intro;
+    }
+
+    public void updatePassword(String password) {
+        this.password = password;
     }
 
     public void updateRole(RoleEnum role) {

@@ -1,0 +1,72 @@
+### ADMIN 로그인
+POST http://localhost:8080/api/users/login
+Content-Type: application/json
+
+{
+  "email" : "test@email.com",
+  "password" : "Asdf2345!"
+}
+
+> {%
+  client.global.set("Authorization", response.body.data.accessToken);
+  client.global.set("RefreshToken", response.body.data.refreshToken);
+%}
+
+### 일반 유저 로그인
+POST http://localhost:8080/api/users/login
+Content-Type: application/json
+
+{
+  "email" : "asdf2345@email.com",
+  "password" : "Asdf2345!"
+}
+
+> {%
+  client.global.set("Authorization", response.body.data.accessToken);
+  client.global.set("RefreshToken", response.body.data.refreshToken);
+%}
+
+
+### 코드카타 생성
+POST http://localhost:8080/api/codekatas/createcodekata
+Content-Type: application/json
+Authorization: {{Authorization}}
+
+{
+  "contents": "코드카타 내용"
+}
+
+### 코드카타 수정
+PUT http://localhost:8080/api/codekatas/2
+Content-Type: application/json
+Authorization: {{Authorization}}
+
+{
+  "contents": "수정된 코드카타 내용"
+}
+
+### 코드카타 삭제
+DELETE http://localhost:8080/api/codekatas/1
+Content-Type: application/json
+Authorization: {{Authorization}}
+
+### 코드카타 단건 조회
+GET http://localhost:8080/api/codekatas/2
+Content-Type: application/json
+Authorization: {{Authorization}}
+
+### 코드카타 전체 조회
+GET http://localhost:8080/api/codekatas/all
+Content-Type: application/json
+Authorization: {{Authorization}}
+
+### 랜덤 코드카타 생성
+POST http://localhost:8080/api/codekatas/create
+Content-Type: application/json
+Authorization: {{Authorization}}
+
+### 오늘의 코드카타 조회
+GET http://localhost:8080/api/codekatas/today
+Content-Type: application/json
+Authorization: {{Authorization}}
+

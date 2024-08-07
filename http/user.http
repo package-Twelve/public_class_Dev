@@ -35,8 +35,8 @@ Content-Type: application/json
 }
 
 > {%
-client.global.set("Authorization", response.headers.valueOf("Authorization"));
-client.global.set("RefreshToken", response.headers.valueOf("RefreshToken"));
+client.global.set("Authorization", response.body.data.accessToken);
+client.global.set("RefreshToken", response.body.data.refreshToken);
 %}
 ###
 
@@ -63,8 +63,16 @@ Content-Type: application/json
 
 {
   "name" : "홍길동",
-  "password" : "Asdf1111!",
   "intro" : "자기소개"
+}
+
+###
+PATCH http://localhost:8080/api/users/profiles/passwords
+Authorization: {{Authorization}}
+Content-Type: application/json
+
+{
+  "password": "Asdf1234!"
 }
 
 ###
@@ -136,7 +144,7 @@ Content-Type: application/json
 #          "type": "SUBTRACT"
 #        }'
 PATCH http://localhost:8080/api/users/points
-Authorization: {{Authorization}}
+Authorization: "{{Authorization}}"
 Content-Type: application/json
 
 {
@@ -145,3 +153,4 @@ Content-Type: application/json
 }
 
 ###
+

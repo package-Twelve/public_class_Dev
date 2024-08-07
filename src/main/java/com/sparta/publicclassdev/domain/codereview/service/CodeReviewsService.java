@@ -63,14 +63,19 @@ public class CodeReviewsService {
 
     codeReviewsRepository.save(codeReview);
 
-    String uploadedCode = uploadCodeFile(codeReview.getId(), codeReviewsRequestDto.getCode());
+    String code = codeReviewsRequestDto.getCode();
 
-    codeReview.updateCode(uploadedCode);
+    if (code != null && !code.isEmpty()) {
+
+      String uploadedCode = uploadCodeFile(codeReview.getId(), code);
+
+      codeReview.updateCode(uploadedCode);
+    }
 
     return new CodeReviewsResponseDto(codeReview, foundUser);
   }
 
-  public CodeReviewsListResponseDto getAllCodieReviews(int page) {
+  public CodeReviewsListResponseDto getAllCodeReviews(int page) {
 
     Pageable pageable = PageRequest.of(page, SizingConstants.PAGE_SIZE);
 
@@ -92,7 +97,11 @@ public class CodeReviewsService {
 
     CodeReviews foundCodeReviews = validateCodeReviewId(codeReviewsId);
 
-    String code = downloadCodeFile(foundCodeReviews);
+    String code = null;
+
+    if (foundCodeReviews.getCode() != null) {
+      code = downloadCodeFile(foundCodeReviews);
+    }
 
     List<CodeReviewCommentsWithLikesResponseDto> commentList = codeReviewCommentsRepository.findByCodeReviewIdWithDetails(
             codeReviewsId).stream()
@@ -107,9 +116,9 @@ public class CodeReviewsService {
 
     Pageable pageable = PageRequest.of(page, SizingConstants.PAGE_SIZE);
 
-    category = arrangeCategory(category);
+    String searchCategory = arrangeCategory(category);
 
-    Page<Tuple> codeReviewsPage = codeReviewsRepository.findAllByCategory(category + " ", pageable);
+    Page<Tuple> codeReviewsPage = codeReviewsRepository.findAllByCategory(searchCategory, pageable);
 
     List<CodeReviewsWithUserResponseDto> responseDtoList = codeReviewsPage.getContent().stream()
         .map(CodeReviewsWithUserResponseDto::new)
@@ -151,9 +160,14 @@ public class CodeReviewsService {
 
     foundCodeReviews.updateCategory(categories);
 
-    String uploadedCode = uploadCodeFile(foundCodeReviews.getId(), codeReviewsRequestDto.getCode());
+    String code = codeReviewsRequestDto.getCode();
 
-    foundCodeReviews.updateCode(uploadedCode);
+    if (code != null && !code.isEmpty()) {
+
+      String uploadedCode = uploadCodeFile(foundCodeReviews.getId(), code);
+
+      foundCodeReviews.updateCode(uploadedCode);
+    }
 
     return new CodeReviewsResponseDto(foundCodeReviews, foundUser);
   }
@@ -185,7 +199,7 @@ public class CodeReviewsService {
   public void validateOwnership(CodeReviews codeReviews, Users user) {
     Users writer = codeReviews.getUser();
 
-    if (!writer.getRole().equals(RoleEnum.ADMIN)) {
+    if (!user.getRole().equals(RoleEnum.ADMIN)) {
       if (!writer.getId().equals(user.getId())) {
         throw new CustomException(ErrorCode.NOT_UNAUTHORIZED);
       }
@@ -197,28 +211,26 @@ public class CodeReviewsService {
     return "#" + Arrays.stream(category.split("#"))
         .map(s -> s.replace(" ", "").toLowerCase())
         .filter(s -> !s.isEmpty())
-        .collect(Collectors.joining(" #"));
+        .collect(Collectors.joining(" #")) + " ";
   }
 
   public String uploadCodeFile(Long codeReviewId, String code) {
     String filename = "codereviews-code/code-" + codeReviewId + ".txt";
 
-    if (code != null && !code.isEmpty()) {
-      try {
-        ByteArrayInputStream inputStream = new ByteArrayInputStream(code.getBytes(
-            StandardCharsets.UTF_8));
+    try {
+      ByteArrayInputStream inputStream = new ByteArrayInputStream(code.getBytes(
+          StandardCharsets.UTF_8));
 
-        minioClient.putObject(
-            PutObjectArgs.builder()
-                .bucket("project-dev-bucket")
-                .object(filename)
-                .stream(inputStream, inputStream.available(), -1)
-                .contentType("text/plain")
-                .build()
-        );
-      } catch (Exception e) {
-        throw new CustomException(ErrorCode.FILE_UPLOAD_FAILED);
-      }
+      minioClient.putObject(
+          PutObjectArgs.builder()
+              .bucket("project-dev-bucket")
+              .object(filename)
+              .stream(inputStream, inputStream.available(), -1)
+              .contentType("text/plain")
+              .build()
+      );
+    } catch (Exception e) {
+      throw new CustomException(ErrorCode.FILE_UPLOAD_FAILED);
     }
 
     return filename;

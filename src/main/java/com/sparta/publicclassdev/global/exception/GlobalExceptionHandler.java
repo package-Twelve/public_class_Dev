@@ -45,9 +45,12 @@ public class GlobalExceptionHandler {
 
 	@ExceptionHandler(MethodArgumentNotValidException.class)
 	public ResponseEntity<ExceptionResponse> processValidationError(MethodArgumentNotValidException e) {
+		BindingResult bindingResult = e.getBindingResult();
+		FieldError fieldError = bindingResult.getFieldErrors().get(0);
+		String msg = fieldError.getDefaultMessage();
 		ExceptionResponse exceptionResponse = ExceptionResponse.builder()
-				.statusCode(ErrorCode.INVALID_REQUEST.getStatus())
-				.message(ErrorCode.INVALID_REQUEST.getMessage())
+				.statusCode(HttpStatus.BAD_REQUEST.value())
+				.message(msg)
 				.build();
 		return new ResponseEntity<>(exceptionResponse, HttpStatus.BAD_REQUEST);
 	}

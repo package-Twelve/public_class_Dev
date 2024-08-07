@@ -48,6 +48,12 @@ Content-Type: application/json
 Authorization: {{Authorization}}
 
 ### GET 게시글 검색
-GET http://localhost:8080/api/community/search?keyword=ti&page=1
+GET http://localhost:8080/api/community/search?keyword=title
+Content-Type: application/json
+Authorization: {{Authorization}}
+
+
+### GET 게시글 순위
+GET http://localhost:8080/api/community/searchRank
 Content-Type: application/json
 Authorization: {{Authorization}}

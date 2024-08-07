@@ -54,7 +54,7 @@ public class CodeReviewCommentsController {
   }
 
   @DeleteMapping("/codereviews/{codeReviewsId}/comments/{codeReviewCommentsId}")
-  public ResponseEntity<MessageResponse> deleteCodeReivew(
+  public ResponseEntity<MessageResponse> deleteCodeReviewComment(
       @PathVariable(name = "codeReviewsId") Long codeReviewsId,
       @PathVariable(name = "codeReviewCommentsId") Long codeReviewCommentsId,
       @AuthenticationPrincipal UserDetailsImpl userDetails) {

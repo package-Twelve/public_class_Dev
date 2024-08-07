@@ -2,6 +2,7 @@ package com.sparta.publicclassdev.domain.teams.entity;
 
 import com.sparta.publicclassdev.domain.users.entity.Users;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -22,11 +23,11 @@ public class TeamUsers {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "users_id")
     private Users users;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "teams_id")
     private Teams teams;
 
@@ -34,9 +35,5 @@ public class TeamUsers {
     public TeamUsers(Users users, Teams teams) {
         this.users = users;
         this.teams = teams;
-    }
-
-    public Users getUsers() {
-        return this.users;
     }
 }
