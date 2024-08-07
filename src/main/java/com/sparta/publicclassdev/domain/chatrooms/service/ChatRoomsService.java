@@ -80,7 +80,7 @@ public class ChatRoomsService {
     
     @Transactional(readOnly = true)
     public List<MessagesResponseDto> getChatMessages(Long teamsId) {
-        List<Messages> messages = messagesRepository.findByChatRooms_Id(teamsId);
+        List<Messages> messages = messagesRepository.findByChatRoomsOrderByCreatedAtAsc(teamsId);
         return messages.stream().map(message -> MessagesResponseDto.builder()
             .id(message.getId())
             .sender(message.getUsers().getName())
