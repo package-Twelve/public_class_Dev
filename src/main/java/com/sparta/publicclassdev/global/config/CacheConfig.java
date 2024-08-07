@@ -40,7 +40,7 @@ public class CacheConfig {
 
         redisCacheConfigMap.put(
             CacheNames.USERBYEMAIL,
-            defaultConfig.entryTtl(Duration.ofHours(4)) //entryTtl()을 호출하여 캐시 항목의 만료 시간(TTL)을 설정합니다.  캐시 수명 4시간
+            defaultConfig.entryTtl(Duration.ofMinutes(30)) //entryTtl()을 호출하여 캐시 항목의 만료 시간(TTL)을 설정합니다.  캐시 수명 4시간
         );
 
         // ALLUSERS에 대해서만 다른 Serializer 적용

@@ -35,6 +35,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/users")
 public class UsersController {
     private final UsersService usersService;
+    private final JwtUtil jwtUtil;
     @PostMapping("/signup")
     public ResponseEntity<DataResponse<SignupResponseDto>> createUser(@Valid @RequestBody SignupRequestDto requestDto) {
         SignupResponseDto responseDto = usersService.createUser(requestDto);
@@ -86,7 +87,9 @@ public class UsersController {
     }
     @PostMapping("/reissue-token")
     public ResponseEntity<DataResponse<AuthResponseDto>> reissueToken(@RequestBody ReissueTokenRequestDto requestDto) {
-        AuthResponseDto responseDto = usersService.reissueToken(requestDto.getRefreshToken());
+        String refreshToken = jwtUtil.substringToken(requestDto.getRefreshToken());
+        String email = jwtUtil.getUserInfoFromToken(refreshToken).getSubject();
+        AuthResponseDto responseDto = usersService.reissueToken(requestDto.getRefreshToken(), email);
         DataResponse<AuthResponseDto> response = new DataResponse<>(HttpStatus.OK.value(), "토큰 재발급 성공", responseDto);
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
