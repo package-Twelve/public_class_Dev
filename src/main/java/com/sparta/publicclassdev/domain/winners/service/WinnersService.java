@@ -2,6 +2,9 @@ package com.sparta.publicclassdev.domain.winners.service;
 
 import com.sparta.publicclassdev.domain.coderuns.entity.CodeRuns;
 import com.sparta.publicclassdev.domain.coderuns.repository.CodeRunsRepository;
+import com.sparta.publicclassdev.domain.teams.entity.Teams;
+import com.sparta.publicclassdev.domain.teams.repository.TeamsRepository;
+import com.sparta.publicclassdev.domain.winners.dto.WinnersRequestDto;
 import com.sparta.publicclassdev.domain.winners.dto.WinnersResponseDto;
 import com.sparta.publicclassdev.domain.winners.entity.Winners;
 import com.sparta.publicclassdev.domain.winners.repository.WinnersRepository;
@@ -23,6 +26,7 @@ public class WinnersService {
     
     private final CodeRunsRepository codeRunsRepository;
     private final WinnersRepository winnersRepository;
+    private final TeamsRepository teamsRepository;
     
     public List<WinnersResponseDto> findAllWinners() {
         return winnersRepository.findAll().stream()
@@ -62,38 +66,63 @@ public class WinnersService {
     public void dailyWinners() {
         List<CodeRuns> codeRunsList = getYesterdayCodeRuns();
         
-        codeRunsList.stream()
-            .collect(Collectors.groupingBy(codeRuns -> codeRuns.getTeams().getId()))
-            .forEach((teamsId, teamCodeRuns) -> {
-                CodeRuns bestRun = teamCodeRuns.stream()
-                    .min(Comparator.comparingLong(CodeRuns::getResponseTime))
-                    .orElse(null);
-                if (bestRun != null) {
-                    Winners winners = Winners.builder()
-                        .code(bestRun.getCode())
-                        .language(bestRun.getLanguage())
-                        .responseTime(bestRun.getResponseTime())
-                        .result(bestRun.getResult())
-                        .teamName(bestRun.getTeams().getName())
-                        .date(LocalDate.now())
-                        .codeRuns(bestRun)
-                        .teams(bestRun.getTeams())
-                        .codeKatas(bestRun.getCodeKatas())
-                        .build();
-                    winnersRepository.save(winners);
-                }
-            });
+        CodeRuns bestRun = codeRunsList.stream()
+            .min(Comparator.comparingLong(CodeRuns::getResponseTime))
+            .orElse(null);
+        
+        if (bestRun != null) {
+            WinnersRequestDto requestDto = new WinnersRequestDto(
+                bestRun.getCode(),
+                bestRun.getLanguage(),
+                bestRun.getResponseTime(),
+                bestRun.getResult(),
+                bestRun.getTeams().getName(),
+                LocalDate.now(),
+                bestRun.getCodeKatas().getId(),
+                bestRun.getId(),
+                bestRun.getTeams().getId()
+            );
+            createWinner(requestDto);
+        }
+    }
+    
+    @Transactional
+    public WinnersResponseDto createWinner(WinnersRequestDto requestDto) {
+        CodeRuns codeRuns = codeRunsRepository.findById(requestDto.getCodeRunsId())
+            .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_CODEKATA));
+        Teams teams = teamsRepository.findById(requestDto.getTeamsId())
+            .orElseThrow(() -> new CustomException(ErrorCode.TEAM_NOT_FOUND));
+        
+        Winners winners = new Winners(
+            requestDto.getCode(),
+            requestDto.getLanguage(),
+            requestDto.getResponseTime(),
+            requestDto.getResult(),
+            requestDto.getTeamName(),
+            requestDto.getDate(),
+            codeRuns,
+            teams,
+            codeRuns.getCodeKatas()
+        );
+        
+        winnersRepository.save(winners);
+        
+        return WinnersResponseDto.builder()
+            .id(winners.getId())
+            .code(winners.getCode())
+            .language(winners.getLanguage())
+            .responseTime(winners.getResponseTime())
+            .result(winners.getResult())
+            .teamName(winners.getTeamName())
+            .date(winners.getDate())
+            .codeKataTitle(winners.getCodeKatas().getTitle())
+            .codeKataContents(winners.getCodeKatas().getContents())
+            .build();
     }
     
     private List<CodeRuns> getYesterdayCodeRuns() {
         LocalDateTime startDay = LocalDateTime.of(LocalDate.now().minusDays(1), LocalTime.MIN);
         LocalDateTime endDay = LocalDateTime.of(LocalDate.now().minusDays(1), LocalTime.MAX);
         return codeRunsRepository.findByCreatedAtBetween(startDay, endDay);
-    }
-    
-    private CodeRuns getBestRuns(List<CodeRuns> teamCodeRuns) {
-        return teamCodeRuns.stream()
-            .min(Comparator.comparingLong(CodeRuns::getResponseTime))
-            .orElse(null);
     }
 }
