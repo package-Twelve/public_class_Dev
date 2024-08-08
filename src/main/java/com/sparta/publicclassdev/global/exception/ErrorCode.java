@@ -51,10 +51,10 @@ public enum ErrorCode {
 	
 	//CodeKata
 	NOT_FOUND_CODEKATA(404, "해당 코드카타를 찾을 수 없습니다."),
-	SESSION_ATTRIBUTES_NOT_FOUND(404, "해당 세션을 찾을 수 없습니다" );
+	SESSION_ATTRIBUTES_NOT_FOUND(404, "해당 세션을 찾을 수 없습니다" ),
+	TIMEOUT(408, "실행 시간이 초과되었습니다."),
+	INVALID_CODE(400, "지원하지 않는 코드입니다.");
 	
-	
-
 	private final Integer status;
 	private final String message;
 }
