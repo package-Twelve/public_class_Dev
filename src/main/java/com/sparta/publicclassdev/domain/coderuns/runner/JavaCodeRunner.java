@@ -27,19 +27,29 @@ public class JavaCodeRunner implements CodeRunner {
             fileWriter.write(code);
         } catch (IOException e) {
             e.printStackTrace();
-            throw new CustomException(ErrorCode.INVALID_REQUEST);
+            throw new CustomException(ErrorCode.INVALID_CODE);
         }
         
         try {
             ProcessBuilder compileBuilder = new ProcessBuilder("javac", file.getAbsolutePath());
             compileBuilder.redirectErrorStream(true);
             Process compileProcess = compileBuilder.start();
-            compileProcess.waitFor();
+            if (!compileProcess.waitFor(5, TimeUnit.SECONDS)) {
+                compileProcess.destroy();
+                throw new CustomException(ErrorCode.TIMEOUT);
+            }
             
             if (compileProcess.exitValue() != 0) {
+                BufferedReader errorReader = new BufferedReader(new InputStreamReader(compileProcess.getErrorStream()));
+                StringBuilder errorOutput = new StringBuilder();
+                String line;
+                while ((line = errorReader.readLine()) != null) {
+                    errorOutput.append(line).append("\n");
+                }
                 throw new CustomException(ErrorCode.INVALID_REQUEST);
             }
             
+            Long startTime = System.currentTimeMillis();
             ProcessBuilder runBuilder = new ProcessBuilder("java", "-cp", file.getParent(), className);
             runBuilder.redirectErrorStream(true);
             Process runProcess = runBuilder.start();
@@ -59,6 +69,10 @@ public class JavaCodeRunner implements CodeRunner {
             
             file.delete();
             new File(file.getAbsolutePath().replace(".java", ".class")).delete();
+            
+            Long endTime = System.currentTimeMillis();
+            Long responseTime = endTime - startTime;
+            stringBuilder.append("Execution time: ").append(responseTime).append(" ms");
             
             return stringBuilder.toString();
         } catch (IOException | InterruptedException e) {
