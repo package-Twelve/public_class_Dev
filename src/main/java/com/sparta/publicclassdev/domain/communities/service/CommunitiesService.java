@@ -87,7 +87,7 @@ public class CommunitiesService {
     }
 
     public List<CommunitiesResponseDto> findPosts() {
-        List<Communities> postList = repository.findAll();
+        List<Communities> postList = repository.findAllByOrderByCreatedAtDesc();
         return postList.stream().map(communities -> new CommunitiesResponseDto(communities.getId(), communities.getCreatedAt(), communities.getTitle(), communities.getContent(), communities.getCategory()))
             .collect(Collectors.toList());
     }
