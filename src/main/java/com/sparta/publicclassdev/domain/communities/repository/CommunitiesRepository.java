@@ -11,4 +11,6 @@ public interface CommunitiesRepository extends JpaRepository<Communities, Long> 
     List<Communities> findPostByUserLimit5(Users user);
 
     List<Communities> findByTitleContainingIgnoreCase(String keyword);
+
+    List<Communities> findAllByOrderByCreatedAtDesc();
 }
