@@ -14,7 +14,7 @@ public class PythonCodeRunner implements CodeRunner {
     @Override
     public String runCode(String code) {
         validateCode(code);
-        return runScript("python", ".py", code);
+        return runScript("python3", ".py", code);
     }
     
     private void validateCode(String code) {
