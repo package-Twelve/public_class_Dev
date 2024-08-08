@@ -3,6 +3,7 @@ package com.sparta.publicclassdev.domain.coderuns.controller;
 import com.sparta.publicclassdev.domain.coderuns.dto.CodeRunsRequestDto;
 import com.sparta.publicclassdev.domain.coderuns.dto.CodeRunsResponseDto;
 import com.sparta.publicclassdev.domain.coderuns.service.CodeRunsService;
+import jakarta.validation.Valid;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -22,8 +23,8 @@ public class CodeRunsController {
     
     @PostMapping("/myteam/{teamsId}/{codeKatasId}/runs")
     public ResponseEntity<CodeRunsResponseDto> runCode(@PathVariable Long teamsId,
-                                                                     @PathVariable Long codeKatasId,
-                                                                     @RequestBody CodeRunsRequestDto request) {
+                                                       @PathVariable Long codeKatasId,
+                                                       @Valid @RequestBody CodeRunsRequestDto request) {
         CodeRunsResponseDto response = codeRunsService.runCode(teamsId, codeKatasId, request);
         return ResponseEntity.ok(response);
     }
