@@ -2,7 +2,6 @@ package com.sparta.publicclassdev.domain.chatrooms.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.sparta.publicclassdev.domain.chatrooms.dto.ChatRoomsRequestDto;
-import com.sparta.publicclassdev.domain.chatrooms.dto.ChatRoomsResponseDto;
 import com.sparta.publicclassdev.domain.chatrooms.dto.MessagesRequestDto;
 import com.sparta.publicclassdev.domain.chatrooms.dto.MessagesResponseDto;
 import com.sparta.publicclassdev.domain.chatrooms.service.ChatRoomsService;
@@ -27,14 +26,12 @@ public class ChatRoomsController {
     
     @MessageMapping("/chat.sendMessage")
     public void sendMessage(@Payload MessagesRequestDto messagesRequestDto) throws JsonProcessingException {
-        log.info("Receive message : {}", messagesRequestDto);
         chatRoomsService.sendMessage(messagesRequestDto);
     }
     
     @MessageMapping("/chat.addUser")
     public void addUser(@Payload ChatRoomsRequestDto chatRoomsRequestDto, SimpMessageHeaderAccessor headerAccessor)
         throws JsonProcessingException {
-        log.info("User join : {}", chatRoomsRequestDto);
         chatRoomsService.addUser(chatRoomsRequestDto, headerAccessor);
     }
     

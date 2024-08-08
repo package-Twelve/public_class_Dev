@@ -40,7 +40,6 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
         String reqToken = req.getHeader(HttpHeaders.AUTHORIZATION);
         if (StringUtils.hasText(reqToken)) {
             String tokenValue = jwtUtil.substringToken(reqToken);
-            log.info(tokenValue);
             String blackList = redisDao.getBlackList(tokenValue);
             if(blackList != null) {
                 if(blackList.equals("logout")) {
@@ -49,7 +48,6 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
                 }
             }
             if (!jwtUtil.validateToken(tokenValue)) {
-                log.error("Token Error");
                 jwtExceptionHandler(res, ErrorCode.TOKEN_EXPIRED);
                 return;
             }
@@ -59,7 +57,6 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
             try {
                 setAuthentication(info.getSubject());
             } catch (Exception e) {
-                log.error(e.getMessage());
                 throw new CustomException(ErrorCode.TOKEN_MISMATCH);
             }
         }
@@ -94,7 +91,6 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
             String json = new ObjectMapper().writeValueAsString(new ExceptionResponse(error.getStatus(), error.getMessage()));
             response.getWriter().write(json);
         } catch (Exception e) {
-            log.error(e.getMessage());
         }
     }
 }
