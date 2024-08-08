@@ -9,9 +9,9 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class CleanUpScheduler {
-    private final RedisTemplate<String, String> redisTemplate;
+    private final RedisTemplate<String, Object> redisTemplate;
 
-    public CleanUpScheduler(RedisTemplate<String, String> redisTemplate) {
+    public CleanUpScheduler(RedisTemplate<String, Object> redisTemplate) {
         this.redisTemplate = redisTemplate;
     }
 
@@ -20,19 +20,19 @@ public class CleanUpScheduler {
         String key = "searchRank";
         long currentTime = System.currentTimeMillis();
 
-        ZSetOperations<String, String> zSetOperations = redisTemplate.opsForZSet();
+        ZSetOperations<String, Object> zSetOperations = redisTemplate.opsForZSet();
 
-        Set<String> rankAll = zSetOperations.reverseRange(key, 0, -1);
+        Set<Object> rankAll = zSetOperations.reverseRange(key, 0, -1);
         if(rankAll != null && !rankAll.isEmpty()){
             deletePastKeyword(rankAll, currentTime);
         }
     }
 
-    public void deletePastKeyword(Set<String> keywordList, long currentTime) {
+    public void deletePastKeyword(Set<Object> keywordList, long currentTime) {
 
-        ZSetOperations<String, String> zSetOperations = redisTemplate.opsForZSet();
+        ZSetOperations<String, Object> zSetOperations = redisTemplate.opsForZSet();
 
-        for (String keywords : keywordList) {
+        for (Object keywords : keywordList) {
             String validTimeObj = (String) redisTemplate.opsForHash().get("keyword_data", keywords);
 
             if(validTimeObj != null){

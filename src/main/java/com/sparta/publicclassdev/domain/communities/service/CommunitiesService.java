@@ -33,7 +33,7 @@ public class CommunitiesService {
     @PostConstruct
     public void cleanUpOldSearchData(){
         String key = "searchRank";
-        long currentTime = System.currentTimeMillis();
+        Long currentTime = System.currentTimeMillis();
 
         ZSetOperations<String, Object> zSetOperations = redisTemplate.opsForZSet();
 
