@@ -12,7 +12,6 @@ import lombok.Getter;
 public class CommunitiesRequestDto {
     @NotBlank(message = "제목을 작성해주세요")
     String title;
-    @Column(columnDefinition = "TEXT")
     @NotBlank(message = "내용을 작성해주세요")
     String content;
     @NotNull(message = "카테고리를 지정해주세요")
