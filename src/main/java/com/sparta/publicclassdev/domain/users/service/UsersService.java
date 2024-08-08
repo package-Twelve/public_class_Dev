@@ -153,8 +153,6 @@ public class UsersService {
         Users user = usersRepository.findByEmail(email).orElseThrow(() ->
             new UsernameNotFoundException("Not Found " + email));
         String storedRefreshToken = redisDao.getRefreshToken(email);
-        log.info("Received refresh token: " + refreshToken);
-        log.info("Stored refresh token: " + storedRefreshToken);
 
         if(redisDao.getRefreshToken(email).contains("\"")) {
             storedRefreshToken = storedRefreshToken.replace("\"", "");

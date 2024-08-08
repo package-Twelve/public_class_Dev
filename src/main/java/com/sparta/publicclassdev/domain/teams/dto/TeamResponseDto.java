@@ -1,7 +1,6 @@
 package com.sparta.publicclassdev.domain.teams.dto;
 
 import com.sparta.publicclassdev.domain.teams.entity.Teams;
-import com.sparta.publicclassdev.domain.users.dto.ProfileResponseDto;
 import com.sparta.publicclassdev.domain.users.entity.Users;
 import java.util.List;
 import java.util.Objects;

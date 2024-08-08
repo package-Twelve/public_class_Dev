@@ -113,7 +113,7 @@ public class CodeReviewsRepositoryTest {
     Page<Tuple> result = codeReviewsRepository.findAllByCategory(searchCategory, pageable);
 
     // then
-    assertEquals(1, result.getTotalElements()); // category1에 해당하는 CodeReviews가 1개 있어야 함
+    assertEquals(1, result.getTotalElements());
 
     Tuple firstTuple = result.getContent().get(0);
 

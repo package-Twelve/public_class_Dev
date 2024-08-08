@@ -14,13 +14,11 @@ import com.sparta.publicclassdev.global.exception.CustomException;
 import com.sparta.publicclassdev.global.exception.ErrorCode;
 import jakarta.annotation.PostConstruct;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
-import java.util.Objects;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ZSetOperations;
 import org.springframework.stereotype.Service;
@@ -29,13 +27,11 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class CommunitiesService {
 
-    private static final Logger log = LoggerFactory.getLogger(CommunitiesService.class);
     private final CommunitiesRepository repository;
     private final RedisTemplate<String, Object> redisTemplate;
 
     @PostConstruct
     public void cleanUpOldSearchData(){
-        log.info("cleanUpOldSearchData 시작");
         String key = "searchRank";
         long currentTime = System.currentTimeMillis();
 
@@ -45,7 +41,6 @@ public class CommunitiesService {
         if(rankAll != null && !rankAll.isEmpty()){
             deletePastKeyword(rankAll, currentTime);
         }
-        log.info("cleanUpOldSearchData 완료");
     }
 
     public CommunitiesResponseDto createPost(CommunitiesRequestDto requestDto, Users user) {
@@ -97,7 +92,6 @@ public class CommunitiesService {
         List<CommunityComments> commentsList = community.getCommentsList();
         List<CommunityCommentResponseDto> responseDto = commentsList.stream().map(communityComments -> new CommunityCommentResponseDto(communityComments.getContent(), communityComments.getId()))
             .toList();
-        log.info(String.valueOf(community.getUser().getName()));
         return new CommunitiesResponseDto(community.getId(), community.getTitle(), community.getContent(), community.getCreatedAt(), community.getCategory(), community.getUser().getName(), responseDto);
     }
     public Communities checkCommunity(Long communityId){
@@ -115,7 +109,6 @@ public class CommunitiesService {
         if(!communityPage.isEmpty()){
             redisTemplate.opsForZSet().incrementScore("searchRank",keyword,1);
             redisTemplate.opsForHash().put("keyword_data", keyword, String.valueOf(currentTime));
-            log.info("검색한 시간"+ currentTime);
         }
 
         return communityPage.stream()
@@ -144,7 +137,6 @@ public class CommunitiesService {
 
                 if(currentTime - time >= TimeUnit.MINUTES.toMillis(30)){
                     zSetOperations.remove("searchRank", keywords);
-                    System.out.println(zSetOperations);
                     redisTemplate.opsForHash().delete("keyword_data", keywords);
                 }
             }

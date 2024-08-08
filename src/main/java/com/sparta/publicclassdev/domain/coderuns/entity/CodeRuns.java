@@ -1,6 +1,5 @@
 package com.sparta.publicclassdev.domain.coderuns.entity;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.sparta.publicclassdev.domain.codekatas.entity.CodeKatas;
 import com.sparta.publicclassdev.domain.teams.entity.Teams;
 import com.sparta.publicclassdev.domain.users.entity.Users;
