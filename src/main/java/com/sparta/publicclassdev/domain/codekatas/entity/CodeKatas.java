@@ -4,6 +4,7 @@ import com.sparta.publicclassdev.domain.coderuns.entity.CodeRuns;
 import com.sparta.publicclassdev.domain.winners.entity.Winners;
 import com.sparta.publicclassdev.global.entity.Timestamped;
 import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -30,6 +31,7 @@ public class CodeKatas extends Timestamped {
 
     private String title;
     
+    @Column(columnDefinition = "TEXT")
     private String contents;
 
     private LocalDate markDate;
