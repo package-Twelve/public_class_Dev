@@ -152,108 +152,108 @@ public class TeamsService {
         return new TeamResponseDto(teams, teamMembers);
     }
     
-private void checkUserInTeam(Users users) {
-    if (teamUsersRepository.existsByUsers(users)) {
-        throw new CustomException(ErrorCode.USER_ALREADY_TEAM);
-    }
-}
-
-public TeamResponseDto getTeamByUserEmail(String email) {
-    Users users = validateUserByEmail(email);
-    
-    List<TeamUsers> teamUsersList = teamUsersRepository.findByUsers(users);
-    if (teamUsersList.isEmpty()) {
-        throw new CustomException(ErrorCode.USER_NOT_TEAM);
+    private void checkUserInTeam(Users users) {
+        if (teamUsersRepository.existsByUsers(users)) {
+            throw new CustomException(ErrorCode.USER_ALREADY_TEAM);
+        }
     }
     
-    TeamUsers teamUser = teamUsersList.get(0);
-    Teams teams = teamUser.getTeams();
+    public TeamResponseDto getTeamByUserEmail(String email) {
+        Users users = validateUserByEmail(email);
+        
+        List<TeamUsers> teamUsersList = teamUsersRepository.findByUsers(users);
+        if (teamUsersList.isEmpty()) {
+            throw new CustomException(ErrorCode.USER_NOT_TEAM);
+        }
+        
+        TeamUsers teamUser = teamUsersList.get(0);
+        Teams teams = teamUser.getTeams();
+        
+        List<Users> teamMembers = teams.getTeamUsers().stream()
+            .map(TeamUsers::getUsers)
+            .collect(Collectors.toList());
+        
+        return new TeamResponseDto(teams, teamMembers);
+    }
     
-    List<Users> teamMembers = teams.getTeamUsers().stream()
-        .map(TeamUsers::getUsers)
-        .collect(Collectors.toList());
+    private Users validateUserByEmail(String email) {
+        return usersRepository.findByEmail(email)
+            .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+    }
     
-    return new TeamResponseDto(teams, teamMembers);
-}
-
-private Users validateUserByEmail(String email) {
-    return usersRepository.findByEmail(email)
-        .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
-}
-
-@Transactional(readOnly = true)
-public TeamResponseDto getTeamById(Long teamsId) {
-    Teams teams = teamsRepository.findById(teamsId)
-        .orElseThrow(() -> new CustomException(ErrorCode.TEAM_NOT_FOUND));
+    @Transactional(readOnly = true)
+    public TeamResponseDto getTeamById(Long teamsId) {
+        Teams teams = teamsRepository.findById(teamsId)
+            .orElseThrow(() -> new CustomException(ErrorCode.TEAM_NOT_FOUND));
+        
+        List<Users> teamMembers = teams.getTeamUsers().stream()
+            .map(TeamUsers::getUsers)
+            .collect(Collectors.toList());
+        
+        return new TeamResponseDto(teams, teamMembers);
+    }
     
-    List<Users> teamMembers = teams.getTeamUsers().stream()
-        .map(TeamUsers::getUsers)
-        .collect(Collectors.toList());
+    @Transactional(readOnly = true)
+    public List<TeamResponseDto> getAllTeams(HttpServletRequest request) {
+        checkAdminRole(request);
+        List<Teams> teamsList = teamsRepository.findAll();
+        
+        return teamsList.stream()
+            .map(team -> {
+                List<Users> teamMembers = team.getTeamUsers() != null ? team.getTeamUsers().stream()
+                    .filter(Objects::nonNull)
+                    .map(TeamUsers::getUsers)
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toList()) : Collections.emptyList();
+                return new TeamResponseDto(team, teamMembers);
+            })
+            .collect(Collectors.toList());
+    }
     
-    return new TeamResponseDto(teams, teamMembers);
-}
-
-@Transactional(readOnly = true)
-public List<TeamResponseDto> getAllTeams(HttpServletRequest request) {
-    checkAdminRole(request);
-    List<Teams> teamsList = teamsRepository.findAll();
-    
-    return teamsList.stream()
-        .map(team -> {
-            List<Users> teamMembers = team.getTeamUsers() != null ? team.getTeamUsers().stream()
-                .filter(Objects::nonNull)
-                .map(TeamUsers::getUsers)
-                .filter(Objects::nonNull)
-                .collect(Collectors.toList()) : Collections.emptyList();
-            return new TeamResponseDto(team, teamMembers);
-        })
-        .collect(Collectors.toList());
-}
-
-@Transactional
-public void deleteTeamById(Long id, HttpServletRequest request) {
-    checkAdminRole(request);
-    Teams teams = teamsRepository.findById(id)
-        .orElseThrow(() -> new CustomException(ErrorCode.TEAM_NOT_FOUND));
-    chatRoomsRepository.deleteAllByTeamsId(teams.getId());
-    codeRunsRepository.deleteAllByTeams(teams);
-    teamUsersRepository.deleteAllByTeams(teams);
-    winnersRepository.deleteAllByTeams(teams);
-    teamsRepository.delete(teams);
-}
-
-@Transactional
-public void deleteAllTeams() {
-    entityManager.createNativeQuery("SET FOREIGN_KEY_CHECKS = 0").executeUpdate();
-    
-    List<Teams> allTeams = teamsRepository.findAll();
-    for (Teams teams : allTeams) {
+    @Transactional
+    public void deleteTeamById(Long id, HttpServletRequest request) {
+        checkAdminRole(request);
+        Teams teams = teamsRepository.findById(id)
+            .orElseThrow(() -> new CustomException(ErrorCode.TEAM_NOT_FOUND));
         chatRoomsRepository.deleteAllByTeamsId(teams.getId());
         codeRunsRepository.deleteAllByTeams(teams);
         teamUsersRepository.deleteAllByTeams(teams);
+        winnersRepository.deleteAllByTeams(teams);
         teamsRepository.delete(teams);
     }
     
-    resetAutoIncrementColumns();
-    entityManager.createNativeQuery("SET FOREIGN_KEY_CHECKS = 1").executeUpdate();
-}
-
-@Transactional
-public void resetAutoIncrementColumns() {
-    entityManager.createNativeQuery("ALTER TABLE teams AUTO_INCREMENT = 1").executeUpdate();
-    entityManager.createNativeQuery("ALTER TABLE team_users AUTO_INCREMENT = 1").executeUpdate();
-    entityManager.createNativeQuery("ALTER TABLE chatrooms AUTO_INCREMENT = 1").executeUpdate();
-    entityManager.createNativeQuery("ALTER TABLE coderuns AUTO_INCREMENT = 1").executeUpdate();
-    entityManager.createNativeQuery("ALTER TABLE chatroomusers AUTO_INCREMENT = 1").executeUpdate();
-    entityManager.close();
-}
-
-private void checkAdminRole(HttpServletRequest request) {
-    String token = jwtUtil.getJwtFromHeader(request);
-    Claims claims = jwtUtil.getUserInfoFromToken(token);
-    String role = "ROLE_" + claims.get("auth").toString().trim();
-    if (!RoleEnum.ADMIN.getAuthority().equals(role)) {
-        throw new CustomException(ErrorCode.NOT_UNAUTHORIZED);
+    @Transactional
+    public void deleteAllTeams() {
+        entityManager.createNativeQuery("SET FOREIGN_KEY_CHECKS = 0").executeUpdate();
+        
+        List<Teams> allTeams = teamsRepository.findAll();
+        for (Teams teams : allTeams) {
+            chatRoomsRepository.deleteAllByTeamsId(teams.getId());
+            codeRunsRepository.deleteAllByTeams(teams);
+            teamUsersRepository.deleteAllByTeams(teams);
+            teamsRepository.delete(teams);
+        }
+        
+        resetAutoIncrementColumns();
+        entityManager.createNativeQuery("SET FOREIGN_KEY_CHECKS = 1").executeUpdate();
     }
-}
+    
+    @Transactional
+    public void resetAutoIncrementColumns() {
+        entityManager.createNativeQuery("ALTER TABLE teams AUTO_INCREMENT = 1").executeUpdate();
+        entityManager.createNativeQuery("ALTER TABLE team_users AUTO_INCREMENT = 1").executeUpdate();
+        entityManager.createNativeQuery("ALTER TABLE chatrooms AUTO_INCREMENT = 1").executeUpdate();
+        entityManager.createNativeQuery("ALTER TABLE coderuns AUTO_INCREMENT = 1").executeUpdate();
+        entityManager.createNativeQuery("ALTER TABLE chatroomusers AUTO_INCREMENT = 1").executeUpdate();
+        entityManager.close();
+    }
+    
+    private void checkAdminRole(HttpServletRequest request) {
+        String token = jwtUtil.getJwtFromHeader(request);
+        Claims claims = jwtUtil.getUserInfoFromToken(token);
+        String role = "ROLE_" + claims.get("auth").toString().trim();
+        if (!RoleEnum.ADMIN.getAuthority().equals(role)) {
+            throw new CustomException(ErrorCode.NOT_UNAUTHORIZED);
+        }
+    }
 }
