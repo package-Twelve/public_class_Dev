@@ -20,8 +20,8 @@ public class SchedulerConfig {
         winnersService.dailyWinners();
     }
 
-    @Scheduled(cron = "0 0 0 * * ?")
-    public void deleteTeamsMidnight() {
+    @Scheduled(cron = "0 10 0 * * ?")
+    public void deleteTeams() {
         teamsService.deleteAllTeams();
     }
 }
