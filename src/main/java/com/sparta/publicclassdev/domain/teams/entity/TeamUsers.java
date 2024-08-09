@@ -18,19 +18,19 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor
 public class TeamUsers {
-
+    
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
+    
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "users_id")
     private Users users;
-
+    
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "teams_id")
     private Teams teams;
-
+    
     @Builder
     public TeamUsers(Users users, Teams teams) {
         this.users = users;

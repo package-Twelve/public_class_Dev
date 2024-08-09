@@ -7,8 +7,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface WinnersRepository extends JpaRepository<Winners, Long> {
     
-    List<Winners> findByTeams(Teams teams);
-    
     void deleteAllByTeams(Teams teams);
     
     void deleteByCodeRunsId(Long codeRunsId);

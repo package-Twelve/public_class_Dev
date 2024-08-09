@@ -21,13 +21,13 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor
 public class Teams extends Timestamped {
-
+    
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
+    
     private String name;
-
+    
     @OneToMany(mappedBy = "teams", orphanRemoval = true, cascade = CascadeType.ALL)
     private List<TeamUsers> teamUsers;
     
