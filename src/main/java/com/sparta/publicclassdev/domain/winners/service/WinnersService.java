@@ -4,14 +4,17 @@ import com.sparta.publicclassdev.domain.coderuns.entity.CodeRuns;
 import com.sparta.publicclassdev.domain.coderuns.repository.CodeRunsRepository;
 import com.sparta.publicclassdev.domain.teams.entity.Teams;
 import com.sparta.publicclassdev.domain.teams.repository.TeamsRepository;
+import com.sparta.publicclassdev.domain.users.entity.RoleEnum;
 import com.sparta.publicclassdev.domain.winners.dto.WinnersRequestDto;
 import com.sparta.publicclassdev.domain.winners.dto.WinnersResponseDto;
 import com.sparta.publicclassdev.domain.winners.entity.Winners;
 import com.sparta.publicclassdev.domain.winners.repository.WinnersRepository;
 import com.sparta.publicclassdev.global.exception.CustomException;
 import com.sparta.publicclassdev.global.exception.ErrorCode;
+import com.sparta.publicclassdev.global.security.JwtUtil;
+import io.jsonwebtoken.Claims;
+import jakarta.servlet.http.HttpServletRequest;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.Comparator;
 import java.util.List;
@@ -27,6 +30,7 @@ public class WinnersService {
     private final CodeRunsRepository codeRunsRepository;
     private final WinnersRepository winnersRepository;
     private final TeamsRepository teamsRepository;
+    private final JwtUtil jwtUtil;
     
     public List<WinnersResponseDto> findAllWinners() {
         return winnersRepository.findAll().stream()
@@ -66,11 +70,20 @@ public class WinnersService {
     public void dailyWinners() {
         List<CodeRuns> codeRunsList = getYesterdayCodeRuns();
         
-        CodeRuns bestRun = codeRunsList.stream()
-            .min(Comparator.comparingLong(CodeRuns::getResponseTime))
-            .orElse(null);
+        if (codeRunsList.isEmpty()) {
+            return;
+        }
         
-        if (bestRun != null) {
+        long minResponseTime = codeRunsList.stream()
+            .min(Comparator.comparingLong(CodeRuns::getResponseTime))
+            .map(CodeRuns::getResponseTime)
+            .orElse(Long.MAX_VALUE);
+        
+        List<CodeRuns> bestRuns = codeRunsList.stream()
+            .filter(codeRun -> codeRun.getResponseTime() == minResponseTime)
+            .collect(Collectors.toList());
+        
+        for (CodeRuns bestRun : bestRuns) {
             WinnersRequestDto requestDto = new WinnersRequestDto(
                 bestRun.getCode(),
                 bestRun.getLanguage(),
@@ -89,7 +102,7 @@ public class WinnersService {
     @Transactional
     public WinnersResponseDto createWinner(WinnersRequestDto requestDto) {
         CodeRuns codeRuns = codeRunsRepository.findById(requestDto.getCodeRunsId())
-            .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_CODEKATA));
+            .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_CODERUN));
         Teams teams = teamsRepository.findById(requestDto.getTeamsId())
             .orElseThrow(() -> new CustomException(ErrorCode.TEAM_NOT_FOUND));
         
@@ -121,8 +134,60 @@ public class WinnersService {
     }
     
     private List<CodeRuns> getYesterdayCodeRuns() {
-        LocalDateTime startDay = LocalDateTime.of(LocalDate.now().minusDays(1), LocalTime.MIN);
-        LocalDateTime endDay = LocalDateTime.of(LocalDate.now().minusDays(1), LocalTime.MAX);
-        return codeRunsRepository.findByCreatedAtBetween(startDay, endDay);
+        LocalDate yesterday = LocalDate.now().minusDays(1);
+        return codeRunsRepository.findByCreatedAtBetween(yesterday.atStartOfDay(),
+            yesterday.atTime(LocalTime.MAX));
+    }
+    
+    private List<CodeRuns> getTodayCodeRuns() {
+        LocalDate today = LocalDate.now();
+        return codeRunsRepository.findByCreatedAtBetween(today.atStartOfDay(),
+            today.atTime(LocalTime.MAX));
+    }
+    
+    @Transactional
+    public WinnersResponseDto createTodayWinner(HttpServletRequest request) {
+        checkAdminRole(request);
+        
+        List<CodeRuns> todayCodeRuns = getTodayCodeRuns();
+        
+        if (todayCodeRuns.isEmpty()) {
+            throw new CustomException(ErrorCode.NOT_FOUND_CODERUN);
+        }
+        
+        CodeRuns bestRun = todayCodeRuns.stream()
+            .min(Comparator.comparingLong(CodeRuns::getResponseTime))
+            .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_CODERUN));
+        
+        WinnersRequestDto requestDto = new WinnersRequestDto(
+            bestRun.getCode(),
+            bestRun.getLanguage(),
+            bestRun.getResponseTime(),
+            bestRun.getResult(),
+            bestRun.getTeams().getName(),
+            LocalDate.now(),
+            bestRun.getCodeKatas().getId(),
+            bestRun.getId(),
+            bestRun.getTeams().getId()
+        );
+        
+        return createWinner(requestDto);
+    }
+    
+    public void deleteWinner(Long winnerId, HttpServletRequest request) {
+        checkAdminRole(request);
+        Winners winner = winnersRepository.findById(winnerId)
+            .orElseThrow(() -> new CustomException(ErrorCode.WINNER_NOT_FOUND));
+        
+        winnersRepository.delete(winner);
+    }
+    
+    private void checkAdminRole(HttpServletRequest request) {
+        String token = jwtUtil.getJwtFromHeader(request);
+        Claims claims = jwtUtil.getUserInfoFromToken(token);
+        String role = "ROLE_" + claims.get("auth").toString().trim();
+        if (!RoleEnum.ADMIN.getAuthority().equals(role)) {
+            throw new CustomException(ErrorCode.NOT_UNAUTHORIZED);
+        }
     }
 }
