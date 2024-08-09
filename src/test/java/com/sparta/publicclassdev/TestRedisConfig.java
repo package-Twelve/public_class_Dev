@@ -1,5 +1,6 @@
-package com.sparta.publicclassdev.global.config;
+package com.sparta.publicclassdev;
 
+import com.sparta.publicclassdev.global.config.RedisSubscriber;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -14,8 +15,8 @@ import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSeriali
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 
 @Configuration
-@Profile("!test")
-public class RedisConfig {
+@Profile("test")
+public class TestRedisConfig {
     @Value("${spring.data.redis.host}")
     private String host;
     @Value("${spring.data.redis.port}")
@@ -41,12 +42,12 @@ public class RedisConfig {
     public GenericJackson2JsonRedisSerializer genericJackson2JsonRedisSerializer(){
         return new GenericJackson2JsonRedisSerializer();
     }
-    
+
     @Bean
     public ChannelTopic channelTopic() {
         return new ChannelTopic("chatrooms");
     }
-    
+
     @Bean
     public RedisMessageListenerContainer redisMessageListenerContainer(RedisConnectionFactory connectionFactory, MessageListenerAdapter listenerAdapter, ChannelTopic channelTopic) {
         RedisMessageListenerContainer container = new RedisMessageListenerContainer();
@@ -54,7 +55,7 @@ public class RedisConfig {
         container.addMessageListener(listenerAdapter, channelTopic);
         return container;
     }
-    
+
     @Bean
     public MessageListenerAdapter listenerAdapter(RedisSubscriber redisSubscriber) {
         return new MessageListenerAdapter(redisSubscriber, "onMessage");
