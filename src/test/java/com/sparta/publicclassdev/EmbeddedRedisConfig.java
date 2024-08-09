@@ -1,4 +1,4 @@
-package com.sparta.publicclassdev.global.config;
+package com.sparta.publicclassdev;
 
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;

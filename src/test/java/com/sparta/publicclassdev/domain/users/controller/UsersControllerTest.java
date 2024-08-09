@@ -3,6 +3,7 @@ package com.sparta.publicclassdev.domain.users.controller;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -10,6 +11,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sparta.publicclassdev.domain.users.dto.AuthRequestDto;
+import com.sparta.publicclassdev.domain.users.dto.ProfileRequestDto;
 import com.sparta.publicclassdev.domain.users.dto.SignupRequestDto;
 import com.sparta.publicclassdev.domain.users.entity.RoleEnum;
 import com.sparta.publicclassdev.domain.users.service.UsersService;
@@ -22,6 +24,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithUserDetails;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.test.web.servlet.MockMvc;
@@ -70,6 +73,12 @@ class UsersControllerTest {
         return requestDto;
     }
 
+    private ProfileRequestDto createTestProfileRequestDto() {
+        ProfileRequestDto responseDto = new ProfileRequestDto();
+
+
+    }
+
     private AuthRequestDto createTestAuthRequestDto() {
         AuthRequestDto requestDto = new AuthRequestDto();
 
@@ -84,9 +93,9 @@ class UsersControllerTest {
         SignupRequestDto requestDto = createTestSignupRequestDto();
 
         ResultActions resultActions = mockMvc.perform(post("/api/users/signup")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(objectMapper.writeValueAsString(requestDto))
-            .accept(MediaType.APPLICATION_JSON))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(requestDto))
+                .accept(MediaType.APPLICATION_JSON))
             .andDo(print());
 
         resultActions
@@ -102,9 +111,9 @@ class UsersControllerTest {
         SignupRequestDto requestDto = createTestAdminSignupRequestDto();
 
         ResultActions resultActions = mockMvc.perform(post("/api/users/signup")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(objectMapper.writeValueAsString(requestDto))
-            .accept(MediaType.APPLICATION_JSON))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(requestDto))
+                .accept(MediaType.APPLICATION_JSON))
             .andDo(print());
 
         resultActions
@@ -130,27 +139,31 @@ class UsersControllerTest {
                 jsonPath("data.refreshToken", is(notNullValue())));
     }
 
-//    @Test
-//    @Order(4)
-//    void getProfile() throws Exception {
-//        AuthRequestDto requestDto = createTestAuthRequestDto();
-//
-//        ResultActions resultActions = mockMvc.perform(get("/api/users/profile")
-//                .contentType(MediaType.APPLICATION_JSON)
-//                .header("Authorization", )
-//                .content(objectMapper.writeValueAsString(requestDto))
-//                .accept(MediaType.APPLICATION_JSON))
-//            .andDo(print());
-//
-//        resultActions
-//            .andExpectAll(status().isOk(),
-//                jsonPath("data.accessToken", is(notNullValue())),
-//                jsonPath("data.refreshToken", is(notNullValue())));
-//    }
-
     @Test
-    void updateProfile() {
+    @Order(4)
+    @WithUserDetails("test@email.com")
+    void getProfile() throws Exception {
+
+        ResultActions resultActions = mockMvc.perform(get("/api/users/profiles")
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON))
+            .andDo(print());
+
+        resultActions
+            .andExpectAll(status().isOk(),
+                jsonPath("data.name").value(testName),
+                jsonPath("data.email").value(testEmail),
+                jsonPath("data.role").value(testUserRole.toString()));
     }
+
+//    @Test
+//    @WithUserDetails("test@email.com")
+//    void updateProfile() throws Exception {
+//        ProfileRequestDto requestDto =
+//        ResultActions resultActions = mockMvc.perform(patch("/api/users/profiles")
+//            .contentType(MediaType.APPLICATION_JSON)
+//            .content(objectMapper.writeValueAsString()));
+//    }
 
     @Test
     void updatePassword() {
