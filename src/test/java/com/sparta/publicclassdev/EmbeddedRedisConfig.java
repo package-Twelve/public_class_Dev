@@ -13,7 +13,7 @@ import redis.embedded.RedisServer;
 public class EmbeddedRedisConfig {
     private RedisServer redisServer;
 
-    public EmbeddedRedisConfig(@Value("${spring.data-test.redis.port}") int port) throws IOException {
+    public EmbeddedRedisConfig(@Value("${spring.data.redis.port}") int port) throws IOException {
         this.redisServer = new RedisServer(port);
     }
 

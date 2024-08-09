@@ -39,9 +39,11 @@ class UsersControllerTest {
     private String ADMIN_TOKEN;
     private String testName = "testuser";
     private String testName1 = "testuser1";
+    private String modifiedTestName = "modifiedtestuser";
     private String testEmail = "test@email.com";
     private String testEmail1 = "test1@email.com";
     private String testPassword = "Asdf1234!";
+    private String intro = "myintro";
     private RoleEnum testUserRole = RoleEnum.USER;
     private RoleEnum testAdminRole = RoleEnum.ADMIN;
     @Autowired
@@ -74,9 +76,12 @@ class UsersControllerTest {
     }
 
     private ProfileRequestDto createTestProfileRequestDto() {
-        ProfileRequestDto responseDto = new ProfileRequestDto();
+        ProfileRequestDto requestDto = new ProfileRequestDto();
 
+        ReflectionTestUtils.setField(requestDto, "name", modifiedTestName);
+        ReflectionTestUtils.setField(requestDto, "intro", intro);
 
+        return requestDto;
     }
 
     private AuthRequestDto createTestAuthRequestDto() {
@@ -162,7 +167,7 @@ class UsersControllerTest {
 //        ProfileRequestDto requestDto =
 //        ResultActions resultActions = mockMvc.perform(patch("/api/users/profiles")
 //            .contentType(MediaType.APPLICATION_JSON)
-//            .content(objectMapper.writeValueAsString()));
+//            .content(objectMapper.writeValueAsString(requestDto)));
 //    }
 
     @Test
