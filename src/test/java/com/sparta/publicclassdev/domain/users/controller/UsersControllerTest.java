@@ -11,6 +11,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sparta.publicclassdev.domain.users.dto.AuthRequestDto;
+import com.sparta.publicclassdev.domain.users.dto.PasswordRequestDto;
 import com.sparta.publicclassdev.domain.users.dto.ProfileRequestDto;
 import com.sparta.publicclassdev.domain.users.dto.SignupRequestDto;
 import com.sparta.publicclassdev.domain.users.entity.RoleEnum;
@@ -43,6 +44,7 @@ class UsersControllerTest {
     private String testEmail = "test@email.com";
     private String testEmail1 = "test1@email.com";
     private String testPassword = "Asdf1234!";
+    private String modifiedTestPassword = "Password1234!";
     private String intro = "myintro";
     private RoleEnum testUserRole = RoleEnum.USER;
     private RoleEnum testAdminRole = RoleEnum.ADMIN;
@@ -92,6 +94,13 @@ class UsersControllerTest {
 
         return requestDto;
     }
+    private PasswordRequestDto createTestPasswordRequestDto() {
+        PasswordRequestDto requestDto = new PasswordRequestDto();
+
+        ReflectionTestUtils.setField(requestDto, "password", modifiedTestPassword);
+
+        return requestDto;
+    }
     @Test
     @Order(1)
     void createUser() throws Exception{
@@ -133,9 +142,9 @@ class UsersControllerTest {
     void login() throws Exception{
         AuthRequestDto requestDto = createTestAuthRequestDto();
         ResultActions resultActions = mockMvc.perform(post("/api/users/login")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(objectMapper.writeValueAsString(requestDto))
-            .accept(MediaType.APPLICATION_JSON))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(requestDto))
+                .accept(MediaType.APPLICATION_JSON))
             .andDo(print());
 
         resultActions
@@ -161,17 +170,50 @@ class UsersControllerTest {
                 jsonPath("data.role").value(testUserRole.toString()));
     }
 
-//    @Test
-//    @WithUserDetails("test@email.com")
-//    void updateProfile() throws Exception {
-//        ProfileRequestDto requestDto =
-//        ResultActions resultActions = mockMvc.perform(patch("/api/users/profiles")
-//            .contentType(MediaType.APPLICATION_JSON)
-//            .content(objectMapper.writeValueAsString(requestDto)));
-//    }
+    @Test
+    @WithUserDetails("test@email.com")
+    void updateProfile() throws Exception {
+        ProfileRequestDto requestDto = createTestProfileRequestDto();
+        ResultActions resultActions = mockMvc.perform(patch("/api/users/profiles")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(requestDto))
+                .accept(MediaType.APPLICATION_JSON))
+            .andDo(print());
+
+        resultActions
+            .andExpectAll(status().isOk(),
+                jsonPath("data.name").value(requestDto.getName()),
+                jsonPath("data.intro").value(requestDto.getIntro()));
+    }
 
     @Test
-    void updatePassword() {
+    @WithUserDetails("test@email.com")
+    void updatePassword() throws Exception {
+        PasswordRequestDto requestDto = createTestPasswordRequestDto();
+        ResultActions resultActions = mockMvc.perform(patch("/api/users/profiles/passwords")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(requestDto))
+                .accept(MediaType.APPLICATION_JSON))
+            .andDo(print());
+
+        resultActions
+            .andExpect(status().isOk());
+    }
+    @Test
+    @WithUserDetails("test@email.com")
+    void getPoints() throws Exception {
+        ResultActions resultActions = mockMvc.perform(get("/api/users/points")
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON))
+            .andDo(print());
+
+        resultActions
+            .andExpectAll(status().isOk(),
+                jsonPath("data.point", is(notNullValue())));
+    }
+
+    @Test
+    void updatePoints() {
     }
 
     @Test
@@ -184,13 +226,5 @@ class UsersControllerTest {
 
     @Test
     void reissueToken() {
-    }
-
-    @Test
-    void getPoints() {
-    }
-
-    @Test
-    void updatePoints() {
     }
 }
