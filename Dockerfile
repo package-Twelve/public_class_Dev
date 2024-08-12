@@ -21,6 +21,12 @@ RUN ./gradlew clean build --exclude-task test
 # Step 2: Use an official OpenJDK image as a runtime environment
 FROM openjdk:17-jdk-slim
 
+# Install Python and Node.js
+RUN apt-get update && \
+    apt-get install -y python3 python3-pip nodejs npm && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
 # Set the working directory
 WORKDIR /app
 
