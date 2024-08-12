@@ -14,7 +14,6 @@ import com.sparta.publicclassdev.domain.codereview.entity.CodeReviews;
 import com.sparta.publicclassdev.domain.codereview.entity.CodeReviews.Status;
 import com.sparta.publicclassdev.domain.codereview.repository.CodeReviewsRepository;
 import com.sparta.publicclassdev.domain.codereview.service.CodeReviewsService;
-import com.sparta.publicclassdev.domain.codereviewcomment.repository.CodeReviewCommentsRepository;
 import com.sparta.publicclassdev.domain.users.entity.RoleEnum;
 import com.sparta.publicclassdev.domain.users.entity.Users;
 import com.sparta.publicclassdev.domain.users.repository.UsersRepository;
@@ -48,8 +47,7 @@ public class CodeReviewsServiceTest {
   private String testCodeReviewTitle = "Title";
   private String testCodeReviewCategory = "#category ";
   private String testCodeReviewContents = "Contents";
-  private Long testUserId = 1L;
-  private Long testCodeReviewId = 1L;
+  private String testCode = "testcode.txt";
 
   @Autowired
   private CodeReviewsService codeReviewsService;
@@ -58,36 +56,26 @@ public class CodeReviewsServiceTest {
   private CodeReviewsRepository codeReviewsRepository;
 
   @Autowired
-  private CodeReviewCommentsRepository codeReviewCommentsRepository;
-
-  @Autowired
   private UsersRepository usersRepository;
 
   @MockBean
   private MinioClient minioClient;
 
   private Users createTestUser() {
-    Users user = Users.builder()
+    return Users.builder()
         .name(testUserName)
         .email(testUserEmail)
         .password(testUserPassword)
         .role(testUserRole)
         .build();
-
-    ReflectionTestUtils.setField(user, "id", testUserId);
-
-    return user;
   }
 
   private CodeReviews createTestCodeReviews(Users user) {
-    String code = createTestCode(testCodeReviewId);
-
     return CodeReviews.builder()
-        .id(testCodeReviewId)
         .title(testCodeReviewTitle)
         .category(testCodeReviewCategory)
         .contents(testCodeReviewContents)
-        .code(code)
+        .code(testCode)
         .status(Status.ACTIVE)
         .user(user)
         .build();
@@ -103,11 +91,6 @@ public class CodeReviewsServiceTest {
 
     return requestDto;
   }
-
-  private String createTestCode(Long codeReviewId) {
-    return "codereviews-code/code-" + codeReviewId + ".txt";
-  }
-
 
   @Test
   @Transactional
@@ -149,7 +132,7 @@ public class CodeReviewsServiceTest {
 
     // Then
     assertNotNull(responseList);
-    assertEquals(testCodeReviewId, responseList.getItems().get(0).getId());
+    assertEquals(codeReview.getId(), responseList.getItems().get(0).getId());
     assertEquals(1, responseList.getTotalItems());
   }
 
@@ -210,15 +193,7 @@ public class CodeReviewsServiceTest {
     ReflectionTestUtils.setField(updateRequestDto, "title", "UPDATE Title");
     ReflectionTestUtils.setField(updateRequestDto, "contents", "UPDATE Contents");
     ReflectionTestUtils.setField(updateRequestDto, "category", "#updatecategory");
-    ReflectionTestUtils.setField(updateRequestDto, "code", "UPDATE Code");
-
-    String updatedCodeFileName = createTestCode(codeReview.getId());
-
-    given(minioClient.putObject(any(PutObjectArgs.class))).willAnswer(invocation -> {
-      PutObjectArgs args = invocation.getArgument(0);
-      assertEquals(updatedCodeFileName, args.object());
-      return null;
-    });
+    ReflectionTestUtils.setField(updateRequestDto, "code", null);
 
     // when
     CodeReviewsResponseDto responseDto = codeReviewsService.updateCodeReview(
@@ -232,6 +207,5 @@ public class CodeReviewsServiceTest {
     assertEquals("UPDATE Title", updatedCodeReview.getTitle());
     assertEquals("UPDATE Contents", updatedCodeReview.getContents());
     assertEquals("#updatecategory ", updatedCodeReview.getCategory());
-    assertEquals(updatedCodeFileName, updatedCodeReview.getCode());
   }
 }

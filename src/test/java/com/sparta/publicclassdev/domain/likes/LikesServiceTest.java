@@ -7,7 +7,6 @@ import com.sparta.publicclassdev.domain.codereview.dto.CodeReviewsRequestDto;
 import com.sparta.publicclassdev.domain.codereview.entity.CodeReviews;
 import com.sparta.publicclassdev.domain.codereview.entity.CodeReviews.Status;
 import com.sparta.publicclassdev.domain.codereview.repository.CodeReviewsRepository;
-import com.sparta.publicclassdev.domain.codereview.service.CodeReviewsService;
 import com.sparta.publicclassdev.domain.codereviewcomment.dto.CodeReviewCommentsRequestDto;
 import com.sparta.publicclassdev.domain.codereviewcomment.entity.CodeReviewComments;
 import com.sparta.publicclassdev.domain.codereviewcomment.repository.CodeReviewCommentsRepository;
@@ -37,13 +36,8 @@ public class LikesServiceTest {
   private String testCodeReviewCategory = "#category ";
   private String testCodeReviewContents = "Contents";
   private String testCommentContents = "Comment";
-  private Long testUserId = 1L;
-  private Long testCodeReviewId = 1L;
-  private Long testCommentId = 1L;
-  private Long testLikeId = 1L;
+  private String testCode = "testcode.txt";
 
-  @Autowired
-  private CodeReviewsService codeReviewsService;
 
   @Autowired
   private CodeReviewsRepository codeReviewsRepository;
@@ -61,27 +55,20 @@ public class LikesServiceTest {
   private LikesService likesService;
 
   private Users createTestUser() {
-    Users user = Users.builder()
+    return Users.builder()
         .name(testUserName)
         .email(testUserEmail)
         .password(testUserPassword)
         .role(testUserRole)
         .build();
-
-    ReflectionTestUtils.setField(user, "id", testUserId);
-
-    return user;
   }
 
   private CodeReviews createTestCodeReviews(Users user) {
-    String code = createTestCode(testCodeReviewId);
-
     return CodeReviews.builder()
-        .id(testCodeReviewId)
         .title(testCodeReviewTitle)
         .category(testCodeReviewCategory)
         .contents(testCodeReviewContents)
-        .code(code)
+        .code(testCode)
         .status(Status.ACTIVE)
         .user(user)
         .build();
@@ -89,7 +76,6 @@ public class LikesServiceTest {
 
   private CodeReviewComments createTestCodeReviewComments(CodeReviews codeReview, Users user) {
     return CodeReviewComments.builder()
-        .id(testCommentId)
         .contents(testCommentContents)
         .status(CodeReviewComments.Status.ACTIVE)
         .user(user)
@@ -113,10 +99,6 @@ public class LikesServiceTest {
 
     ReflectionTestUtils.setField(requestDto, "contents", testCommentContents);
     return requestDto;
-  }
-
-  private String createTestCode(Long codeReviewId) {
-    return "codereviews-code/code-" + codeReviewId + ".txt";
   }
 
   @Nested
@@ -159,7 +141,6 @@ public class LikesServiceTest {
       codeReviewCommentsRepository.save(comment);
 
       Likes like = Likes.builder()
-          .id(testLikeId)
           .status(Likes.Status.LIKED)
           .user(user)
           .codeReviewComment(comment)
@@ -176,7 +157,6 @@ public class LikesServiceTest {
       Likes updatedLike = likesRepository.findByUserIdAndCodeReviewCommentId(user.getId(),
           comment.getId());
       assertNotNull(updatedLike);
-      assertEquals(testLikeId, updatedLike.getId());
       assertEquals(Likes.Status.UNLIKED, updatedLike.getStatus());
     }
 
@@ -193,7 +173,6 @@ public class LikesServiceTest {
       codeReviewCommentsRepository.save(comment);
 
       Likes like = Likes.builder()
-          .id(testLikeId)
           .status(Likes.Status.UNLIKED)
           .user(user)
           .codeReviewComment(comment)
@@ -210,7 +189,6 @@ public class LikesServiceTest {
       Likes updatedLike = likesRepository.findByUserIdAndCodeReviewCommentId(user.getId(),
           comment.getId());
       assertNotNull(updatedLike);
-      assertEquals(testLikeId, updatedLike.getId());
       assertEquals(Likes.Status.LIKED, updatedLike.getStatus());
     }
   }
