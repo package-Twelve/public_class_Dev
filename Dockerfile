@@ -27,17 +27,18 @@ WORKDIR /app
 # Copy the built JAR file from the build stage
 COPY --from=build /app/build/libs/*.jar app.jar
 
-# Install Python
-RUN apt-get update && \
-    apt-get install -y python3 python3-pip
+# Create logs directory and set permissions
+RUN mkdir -p /app/logs && \
+    chmod 755 /app/logs
 
-# Install Node.js and npm (for JavaScript)
-RUN apt-get install -y curl && \
-    curl -fsSL https://deb.nodesource.com/setup_18.x | bash - && \
-    apt-get install -y nodejs
+# Set environment variable for logging
+ENV LOG_PATH=/app/logs
 
 # Expose the application port
 EXPOSE 8080
 
 # Define the entry point for the container
-ENTRYPOINT ["java", "-jar", "/app/app.jar"]
+ENTRYPOINT ["java", "-Dlogging.file.path=/app/logs/app.log", "-jar", "/app/app.jar"]
+
+# Logs directory volume
+VOLUME ["/app/logs"]
