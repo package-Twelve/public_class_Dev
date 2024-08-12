@@ -14,7 +14,10 @@ public class EmbeddedRedisConfig {
     private RedisServer redisServer;
 
     public EmbeddedRedisConfig(@Value("${spring.data.redis.port}") int port) throws IOException {
-        this.redisServer = new RedisServer(port);
+        this.redisServer = RedisServer.builder()
+            .port(port)
+            .setting("maxmemory 128M")
+            .build();
     }
 
     @PostConstruct
