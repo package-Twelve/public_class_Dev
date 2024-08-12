@@ -100,6 +100,7 @@ public class CodeReviewCommentsServiceTest {
   }
 
   @Test
+  @Transactional
   public void testCreateCodeReviewComment() {
     // given
     Users user = createTestUser();

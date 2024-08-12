@@ -119,6 +119,7 @@ public class CodeReviewsServiceTest {
 
 
   @Test
+  @Transactional
   void testGetAllCodeReviews() {
     // Given
     Users user = createTestUser();
@@ -137,6 +138,7 @@ public class CodeReviewsServiceTest {
   }
 
   @Test
+  @Transactional
   public void testGetCodeReviewsByCategory() {
     // given
     Users user = createTestUser();

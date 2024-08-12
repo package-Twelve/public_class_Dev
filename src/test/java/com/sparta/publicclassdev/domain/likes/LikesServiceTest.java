@@ -16,6 +16,7 @@ import com.sparta.publicclassdev.domain.likes.service.LikesService;
 import com.sparta.publicclassdev.domain.users.entity.RoleEnum;
 import com.sparta.publicclassdev.domain.users.entity.Users;
 import com.sparta.publicclassdev.domain.users.repository.UsersRepository;
+import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -105,6 +106,7 @@ public class LikesServiceTest {
   class SetLikeTest {
 
     @Test
+    @Transactional
     void testSetLike_NoLikeExists() {
       // given
       Users user = createTestUser();
@@ -129,6 +131,7 @@ public class LikesServiceTest {
     }
 
     @Test
+    @Transactional
     void testSetLikeWhen_LikeExists() {
       // given
       Users user = createTestUser();
@@ -161,6 +164,7 @@ public class LikesServiceTest {
     }
 
     @Test
+    @Transactional
     void testSetLike_LikeDeleted() {
       // given
       Users user = createTestUser();
