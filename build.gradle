@@ -43,6 +43,8 @@ dependencies {
     runtimeOnly 'com.mysql:mysql-connector-j'
     annotationProcessor 'org.projectlombok:lombok'
     testImplementation 'org.springframework.security:spring-security-test'
+    testImplementation(platform('org.junit:junit-bom:5.10.3'))
+    testImplementation('org.junit.jupiter:junit-jupiter')
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'com.h2database:h2'
@@ -57,6 +59,7 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-data-redis'
     //redis 캐시
     implementation 'org.springframework.boot:spring-boot-starter-cache'
+    implementation group: 'it.ozimov', name: 'embedded-redis', version: '0.7.1'
 }
 
 jar {
