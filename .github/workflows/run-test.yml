@@ -4,7 +4,8 @@ on:
   pull_request:
   push:
     branches:
-      - refactor/#155-CI
+      - main
+      - develop
 
 permissions:
   contents: read
