@@ -1,7 +1,6 @@
 package com.sparta.publicclassdev.domain.codekatas.repository;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
 
 import com.sparta.publicclassdev.domain.codekatas.entity.CodeKatas;
 import java.time.LocalDate;
