@@ -9,8 +9,6 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 
 @SpringBootApplication(exclude = SecurityAutoConfiguration.class)
 @EnableCaching
-@EnableScheduling
-@EnableBatchProcessing
 public class PublicClassDevApplication {
 
     public static void main(String[] args) {
