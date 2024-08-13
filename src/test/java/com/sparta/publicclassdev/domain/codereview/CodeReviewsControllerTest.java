@@ -217,7 +217,7 @@ class CodeReviewsControllerTest {
         codeReviewsResponseDto);
 
     // when
-    MockHttpServletRequestBuilder request = MockMvcRequestBuilders.patch(
+    MockHttpServletRequestBuilder request = MockMvcRequestBuilders.put(
             "/api/codereviews/{codeReviewsId}", 1L)
         .contentType(MediaType.APPLICATION_JSON)
         .content(objectMapper.writeValueAsString(codeReviewsRequestDto))
