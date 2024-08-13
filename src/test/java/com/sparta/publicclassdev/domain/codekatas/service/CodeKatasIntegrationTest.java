@@ -18,6 +18,7 @@ import com.sparta.publicclassdev.domain.users.entity.RoleEnum;
 import com.sparta.publicclassdev.domain.users.entity.Users;
 import com.sparta.publicclassdev.domain.users.repository.UsersRepository;
 import com.sparta.publicclassdev.global.security.JwtUtil;
+import jakarta.transaction.Transactional;
 import java.nio.charset.StandardCharsets;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -84,6 +85,7 @@ public class CodeKatasIntegrationTest {
     }
     
     @Test
+    @Transactional
     public void testCreateCodeKata() throws Exception {
         CodeKatasRequestDto requestDto = createCodeKatasRequestDto();
         
@@ -105,6 +107,7 @@ public class CodeKatasIntegrationTest {
     }
     
     @Test
+    @Transactional
     public void testGetCodeKata() throws Exception {
         CodeKatas codeKata = CodeKatas.builder()
             .title("testkata")
@@ -121,6 +124,7 @@ public class CodeKatasIntegrationTest {
     }
     
     @Test
+    @Transactional
     public void testGetAllCodeKatas() throws Exception {
         CodeKatas codeKata1 = CodeKatas.builder()
             .title("kata1")
@@ -143,6 +147,7 @@ public class CodeKatasIntegrationTest {
     }
     
     @Test
+    @Transactional
     public void testDeleteCodeKata() throws Exception {
         CodeKatas codeKata = CodeKatas.builder()
             .title("testkata")
@@ -160,6 +165,7 @@ public class CodeKatasIntegrationTest {
     }
     
     @Test
+    @Transactional
     public void testUpdateCodeKata() throws Exception {
         CodeKatas codeKata = CodeKatas.builder()
             .title("oldtitle")
