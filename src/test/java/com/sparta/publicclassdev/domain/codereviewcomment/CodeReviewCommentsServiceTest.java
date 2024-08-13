@@ -16,12 +16,10 @@ import com.sparta.publicclassdev.domain.codereviewcomment.service.CodeReviewComm
 import com.sparta.publicclassdev.domain.users.entity.RoleEnum;
 import com.sparta.publicclassdev.domain.users.entity.Users;
 import com.sparta.publicclassdev.domain.users.repository.UsersRepository;
-import io.minio.MinioClient;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.util.ReflectionTestUtils;
 
@@ -37,9 +35,7 @@ public class CodeReviewCommentsServiceTest {
   private String testCodeReviewCategory = "#category ";
   private String testCodeReviewContents = "Contents";
   private String testCommentContents = "Comment";
-  private Long testUserId = 1L;
-  private Long testCodeReviewId = 1L;
-  private Long testCommentId = 1L;
+  private String testCode = "testcode.txt";
 
   @Autowired
   private CodeReviewsService codeReviewsService;
@@ -53,33 +49,24 @@ public class CodeReviewCommentsServiceTest {
   @Autowired
   private UsersRepository usersRepository;
 
-  @MockBean
-  private MinioClient minioClient;
   @Autowired
   private CodeReviewCommentsService codeReviewCommentsService;
 
   private Users createTestUser() {
-    Users user = Users.builder()
+    return Users.builder()
         .name(testUserName)
         .email(testUserEmail)
         .password(testUserPassword)
         .role(testUserRole)
         .build();
-
-    ReflectionTestUtils.setField(user, "id", testUserId);
-
-    return user;
   }
 
   private CodeReviews createTestCodeReviews(Users user) {
-    String code = createTestCode(testCodeReviewId);
-
     return CodeReviews.builder()
-        .id(testCodeReviewId)
         .title(testCodeReviewTitle)
         .category(testCodeReviewCategory)
         .contents(testCodeReviewContents)
-        .code(code)
+        .code(testCode)
         .status(Status.ACTIVE)
         .user(user)
         .build();
@@ -87,7 +74,6 @@ public class CodeReviewCommentsServiceTest {
 
   private CodeReviewComments createTestCodeReviewComments(CodeReviews codeReview, Users user) {
     return CodeReviewComments.builder()
-        .id(testCommentId)
         .contents(testCommentContents)
         .status(CodeReviewComments.Status.ACTIVE)
         .user(user)
@@ -113,11 +99,8 @@ public class CodeReviewCommentsServiceTest {
     return requestDto;
   }
 
-  private String createTestCode(Long codeReviewId) {
-    return "codereviews-code/code-" + codeReviewId + ".txt";
-  }
-
   @Test
+  @Transactional
   public void testCreateCodeReviewComment() {
     // given
     Users user = createTestUser();
@@ -137,9 +120,9 @@ public class CodeReviewCommentsServiceTest {
         .orElse(null);
 
     assertNotNull(createdComment);
-    assertEquals(testCodeReviewId, createdComment.getId());
+    assertEquals(codeReview.getId(), createdComment.getId());
     assertEquals(testCommentContents, createdComment.getContents());
-    assertEquals(testUserId, createdComment.getUser().getId());
+    assertEquals(user.getId(), createdComment.getUser().getId());
     assertEquals(CodeReviewComments.Status.ACTIVE, createdComment.getStatus());
   }
 
@@ -168,7 +151,7 @@ public class CodeReviewCommentsServiceTest {
         .orElse(null);
 
     assertNotNull(updatedComment);
-    assertEquals(testCodeReviewId, updatedComment.getId());
+    assertEquals(codeReview.getId(), updatedComment.getId());
     assertEquals("UPDATE Comment", updatedComment.getContents());
   }
 
@@ -193,7 +176,7 @@ public class CodeReviewCommentsServiceTest {
         .orElse(null);
 
     assertNotNull(deletedComment);
-    assertEquals(testCodeReviewId, deletedComment.getId());
+    assertEquals(codeReview.getId(), deletedComment.getId());
     assertEquals(CodeReviewComments.Status.DELETED, deletedComment.getStatus());
   }
 }
