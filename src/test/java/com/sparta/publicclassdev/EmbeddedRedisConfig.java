@@ -47,11 +47,19 @@ public class EmbeddedRedisConfig {
   }
 
   private Process executeGrepProcessCommand(int redisPort) throws IOException {
-    String command = String.format("netstat -nat | grep LISTEN|grep %d", redisPort);
-    String[] shell = {"/bin/sh", "-c", command};
 
-    return Runtime.getRuntime().exec(shell);
+    String githubActions = System.getenv("GITHUB_ACTIONS");
 
+    if ("true".equals(githubActions)) {
+      String command = String.format("netstat -nat | grep LISTEN|grep %d", redisPort);
+      String[] shell = {"/bin/sh", "-c", command};
+      return Runtime.getRuntime().exec(shell);
+
+    } else {
+      String command = String.format("netstat -an | findstr LISTENING | findstr :%d", redisPort);
+      String[] shell = {"cmd.exe", "/c", command};
+      return Runtime.getRuntime().exec(shell);
+    }
   }
 
   private boolean isRunning(Process process) {
