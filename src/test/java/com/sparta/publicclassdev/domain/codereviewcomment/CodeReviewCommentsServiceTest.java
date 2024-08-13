@@ -120,7 +120,7 @@ public class CodeReviewCommentsServiceTest {
         .orElse(null);
 
     assertNotNull(createdComment);
-    assertEquals(codeReview.getId(), createdComment.getId());
+    assertEquals(codeReview.getId(), createdComment.getCodeReviews().getId());
     assertEquals(testCommentContents, createdComment.getContents());
     assertEquals(user.getId(), createdComment.getUser().getId());
     assertEquals(CodeReviewComments.Status.ACTIVE, createdComment.getStatus());
@@ -151,7 +151,7 @@ public class CodeReviewCommentsServiceTest {
         .orElse(null);
 
     assertNotNull(updatedComment);
-    assertEquals(codeReview.getId(), updatedComment.getId());
+    assertEquals(codeReview.getId(), updatedComment.getCodeReviews().getId());
     assertEquals("UPDATE Comment", updatedComment.getContents());
   }
 
@@ -176,7 +176,7 @@ public class CodeReviewCommentsServiceTest {
         .orElse(null);
 
     assertNotNull(deletedComment);
-    assertEquals(codeReview.getId(), deletedComment.getId());
+    assertEquals(codeReview.getId(), deletedComment.getCodeReviews().getId());
     assertEquals(CodeReviewComments.Status.DELETED, deletedComment.getStatus());
   }
 }

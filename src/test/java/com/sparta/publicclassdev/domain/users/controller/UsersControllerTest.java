@@ -56,11 +56,11 @@ import org.springframework.test.web.servlet.ResultActions;
 class UsersControllerTest {
     @Value("${ADMIN_TOKEN}")
     private String ADMIN_TOKEN;
-    private String testName = "testuser";
-    private String testName1 = "testuser1";
-    private String modifiedTestName = "modifiedtestuser";
-    private String testEmail = "test@email.com";
-    private String testEmail1 = "test1@email.com";
+    private String testName = "kyungtae42";
+    private String testName1 = "kyungtae43";
+    private String modifiedTestName = "modifiedkyungtae42";
+    private String testEmail = "kyungtae42@email.com";
+    private String testEmail1 = "kyungtae43@email.com";
     private String testPassword = "Asdf1234!";
     private String modifiedTestPassword = "Password1234!";
     private String intro = "myintro";
@@ -282,7 +282,7 @@ class UsersControllerTest {
                 .content(objectMapper.writeValueAsString(requestDto))
                 .accept(MediaType.APPLICATION_JSON))
             .andDo(print());
-        Users user = usersRepository.findByEmail("test@email.com").orElse(new Users());
+        Users user = usersRepository.findByEmail(testEmail).orElse(new Users());
 
         resultActions
             .andExpectAll(status().isOk(),
