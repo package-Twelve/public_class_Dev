@@ -21,20 +21,20 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor
 public class Teams extends Timestamped {
-
+    
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
+    
     private String name;
-
+    
     @OneToMany(mappedBy = "teams", orphanRemoval = true, cascade = CascadeType.ALL)
     private List<TeamUsers> teamUsers;
     
     @OneToMany(mappedBy = "teams", orphanRemoval = true, cascade = CascadeType.ALL)
     private List<ChatRooms> chatRooms;
     
-    @OneToMany(mappedBy = "teams", orphanRemoval = true, cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "teams", cascade = CascadeType.ALL)
     private List<Winners> winners;
     
     @OneToMany(mappedBy = "teams", orphanRemoval = true, cascade = CascadeType.ALL)

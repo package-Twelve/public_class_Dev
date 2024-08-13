@@ -147,19 +147,12 @@ public class UsersService {
         }
         user.updateRole(RoleEnum.WITHDRAW);
     }
-    public AuthResponseDto reissueToken(String refreshToken) {
+    @CachePut(cacheNames = CacheNames.USERBYEMAIL, key = "'login' + #p1")
+    public AuthResponseDto reissueToken(String refreshToken, String email) {
         String substringToken = jwtUtil.substringToken(refreshToken);
-        Claims info = jwtUtil.getUserInfoFromToken(substringToken);
-        String email = info.getSubject();
-        return reissueTokenWithEmail(email, refreshToken);
-    }
-    @CachePut(cacheNames = CacheNames.USERBYEMAIL, key = "'login' + #p0")
-    public AuthResponseDto reissueTokenWithEmail(String email, String refreshToken) {
         Users user = usersRepository.findByEmail(email).orElseThrow(() ->
             new UsernameNotFoundException("Not Found " + email));
         String storedRefreshToken = redisDao.getRefreshToken(email);
-        log.info("Received refresh token: " + refreshToken);
-        log.info("Stored refresh token: " + storedRefreshToken);
 
         if(redisDao.getRefreshToken(email).contains("\"")) {
             storedRefreshToken = storedRefreshToken.replace("\"", "");

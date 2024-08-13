@@ -2,9 +2,10 @@ package com.sparta.publicclassdev.domain.chatrooms.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.sparta.publicclassdev.domain.chatrooms.dto.ChatRoomsDto;
-import com.sparta.publicclassdev.domain.chatrooms.dto.ChatRoomsDto.MessageType;
-import com.sparta.publicclassdev.domain.chatrooms.dto.MessagesDto;
+import com.sparta.publicclassdev.domain.chatrooms.dto.ChatRoomsRequestDto;
+import com.sparta.publicclassdev.domain.chatrooms.dto.ChatRoomsResponseDto;
+import com.sparta.publicclassdev.domain.chatrooms.dto.MessagesRequestDto;
+import com.sparta.publicclassdev.domain.chatrooms.dto.MessagesResponseDto;
 import com.sparta.publicclassdev.domain.chatrooms.entity.ChatRooms;
 import com.sparta.publicclassdev.domain.chatrooms.entity.Messages;
 import com.sparta.publicclassdev.domain.chatrooms.repository.ChatRoomsRepository;
@@ -37,53 +38,56 @@ public class ChatRoomsService {
     private final ChannelTopic channelTopic;
     
     @Transactional
-    public void sendMessage(MessagesDto messagesDto) throws JsonProcessingException {
-        Users users = usersRepository.findByName(messagesDto.getSender())
+    public void sendMessage(MessagesRequestDto messagesRequestDto) throws JsonProcessingException {
+        Users user = usersRepository.findByName(messagesRequestDto.getSender())
             .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
-        ChatRooms chatRooms = chatRoomsRepository.findById(messagesDto.getTeamsId())
+        ChatRooms chatRoom = chatRoomsRepository.findById(messagesRequestDto.getTeamsId())
             .orElseThrow(() -> new CustomException(ErrorCode.TEAM_NOT_FOUND));
         
-        Messages messages = Messages.builder()
-            .contents(messagesDto.getContent())
-            .users(users)
-            .chatRooms(chatRooms)
-            .build();
-        messagesRepository.save(messages);
-        
-        MessagesDto savedMessagesDto = MessagesDto.builder()
-            .id(messages.getId())
-            .content(messages.getContents())
-            .sender(users.getName())
-            .teamsId(messages.getId())
-            .timestamp(messages.getCreatedAt())
+        Messages message = Messages.builder()
+            .contents(messagesRequestDto.getContent())
+            .users(user)
+            .chatRooms(chatRoom)
             .build();
         
-        redisTemplate.convertAndSend(channelTopic.getTopic(), objectMapper.writeValueAsString(savedMessagesDto));
+        messagesRepository.save(message);
+        
+        MessagesResponseDto savedMessageDto = MessagesResponseDto.builder()
+            .id(message.getId())
+            .content(message.getContents())
+            .sender(user.getName())
+            .teamsId(message.getChatRooms().getId())
+            .timestamp(message.getCreatedAt().toString())
+            .username(message.getUsers().getName())
+            .build();
+        String messageJson = objectMapper.writeValueAsString(savedMessageDto);
+        redisTemplate.convertAndSend(channelTopic.getTopic(), messageJson);
     }
     
     
     @Transactional
-    public void addUser(ChatRoomsDto chatRoomsDto, SimpMessageHeaderAccessor headerAccessor)
+    public synchronized void addUser(ChatRoomsRequestDto chatRoomsRequestDto, SimpMessageHeaderAccessor headerAccessor)
         throws JsonProcessingException {
-        ChatRoomsDto joinMessage = ChatRoomsDto.builder()
-            .type(MessageType.JOIN)
-            .sender(chatRoomsDto.getSender())
-            .teamsId(chatRoomsDto.getTeamsId())
-            .content(chatRoomsDto.getSender() + "님이 입장하셨습니다.")
-            .timestamp(LocalDateTime.now())
+        ChatRoomsResponseDto joinMessage = ChatRoomsResponseDto.builder()
+            .type(chatRoomsRequestDto.getType())
+            .sender(chatRoomsRequestDto.getSender())
+            .teamsId(chatRoomsRequestDto.getTeamsId())
+            .content(chatRoomsRequestDto.getUsername() + "님이 입장하셨습니다.")
+            .timestamp(LocalDateTime.now().toString())
             .build();
         redisTemplate.convertAndSend(channelTopic.getTopic(), objectMapper.writeValueAsString(joinMessage));
     }
     
     @Transactional(readOnly = true)
-    public List<MessagesDto> getChatMessages(Long teamsId) {
+    public List<MessagesResponseDto> getChatMessages(Long teamsId) {
         List<Messages> messages = messagesRepository.findByChatRooms_Id(teamsId);
-        return messages.stream().map(message -> MessagesDto.builder()
+        return messages.stream().map(message -> MessagesResponseDto.builder()
             .id(message.getId())
             .sender(message.getUsers().getName())
             .content(message.getContents())
             .teamsId(message.getChatRooms().getId())
-            .timestamp(message.getCreatedAt())
+            .timestamp(message.getCreatedAt().toString())
+            .username(message.getUsers().getName())
             .build()).collect(Collectors.toList());
     }
 }

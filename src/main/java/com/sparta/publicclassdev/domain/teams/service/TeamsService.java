@@ -5,28 +5,33 @@ import com.sparta.publicclassdev.domain.chatrooms.entity.ChatRooms;
 import com.sparta.publicclassdev.domain.chatrooms.repository.ChatRoomUsersRepository;
 import com.sparta.publicclassdev.domain.chatrooms.repository.ChatRoomsRepository;
 import com.sparta.publicclassdev.domain.coderuns.repository.CodeRunsRepository;
+import com.sparta.publicclassdev.domain.teams.dto.TeamRequestDto;
 import com.sparta.publicclassdev.domain.teams.dto.TeamResponseDto;
 import com.sparta.publicclassdev.domain.teams.entity.TeamUsers;
 import com.sparta.publicclassdev.domain.teams.entity.Teams;
 import com.sparta.publicclassdev.domain.teams.repository.TeamUsersRepository;
 import com.sparta.publicclassdev.domain.teams.repository.TeamsRepository;
+import com.sparta.publicclassdev.domain.users.entity.RoleEnum;
 import com.sparta.publicclassdev.domain.users.entity.Users;
 import com.sparta.publicclassdev.domain.users.repository.UsersRepository;
 import com.sparta.publicclassdev.domain.winners.repository.WinnersRepository;
 import com.sparta.publicclassdev.global.exception.CustomException;
 import com.sparta.publicclassdev.global.exception.ErrorCode;
+import com.sparta.publicclassdev.global.security.JwtUtil;
+import io.jsonwebtoken.Claims;
 import jakarta.persistence.EntityManager;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Random;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -40,6 +45,7 @@ public class TeamsService {
     private final CodeRunsRepository codeRunsRepository;
     private final WinnersRepository winnersRepository;
     private final EntityManager entityManager;
+    private final JwtUtil jwtUtil;
     
     private static final List<String> Modifier = List.of(
         "Agile", "Brave", "Calm", "Daring", "Eager", "Fierce", "Gentle", "Heroic", "Jolly", "Keen"
@@ -65,8 +71,8 @@ public class TeamsService {
     }
     
     @Transactional
-    public TeamResponseDto createAndMatchTeam(String email) {
-        Users user = validateUserByEmail(email);
+    public TeamResponseDto createAndMatchTeam(TeamRequestDto requestDto) {
+        Users user = validateUserByEmail(requestDto.getEmail());
         checkUserInTeam(user);
         
         List<Users> waitUser = new ArrayList<>();
@@ -92,17 +98,40 @@ public class TeamsService {
         
         Collections.shuffle(waitUser);
         
-        Teams teams = Teams.builder()
-            .name(randomTeamName())
-            .build();
-        teamsRepository.save(teams);
+        final Integer MAX_TEAM_SIZE = 3;
         
-        ChatRooms chatRooms = ChatRooms.builder()
-            .teams(teams)
-            .build();
-        chatRoomsRepository.save(chatRooms);
-        
+        Teams teams = null;
+        ChatRooms chatRooms = null;
         List<Users> teamMembers = new ArrayList<>();
+        
+        List<Teams> existingTeams = teamsRepository.findAll();
+        for (Teams existingTeam : existingTeams) {
+            List<Users> currentTeamMembers = existingTeam.getTeamUsers().stream()
+                .map(TeamUsers::getUsers)
+                .collect(Collectors.toList());
+            
+            if (currentTeamMembers.size() < MAX_TEAM_SIZE) {
+                teams = existingTeam;
+                teamMembers.addAll(currentTeamMembers);
+                List<ChatRooms> chatRoomsList = chatRoomsRepository.findByTeams(teams);
+                if (!chatRoomsList.isEmpty()) {
+                    chatRooms = chatRoomsList.get(0);
+                }
+                break;
+            }
+        }
+        
+        if (teams == null) {
+            teams = Teams.builder()
+                .name(randomTeamName())
+                .build();
+            teamsRepository.save(teams);
+            
+            chatRooms = ChatRooms.builder()
+                .teams(teams)
+                .build();
+            chatRoomsRepository.save(chatRooms);
+        }
         for (Users waitingUser : waitUser) {
             if (!teamUsersRepository.existsByUsers(waitingUser)) {
                 teamMembers.add(waitingUser);
@@ -129,7 +158,6 @@ public class TeamsService {
         }
     }
     
-    @Transactional(readOnly = true)
     public TeamResponseDto getTeamByUserEmail(String email) {
         Users users = validateUserByEmail(email);
         
@@ -165,6 +193,35 @@ public class TeamsService {
         return new TeamResponseDto(teams, teamMembers);
     }
     
+    @Transactional(readOnly = true)
+    public List<TeamResponseDto> getAllTeams(HttpServletRequest request) {
+        checkAdminRole(request);
+        List<Teams> teamsList = teamsRepository.findAll();
+        
+        return teamsList.stream()
+            .map(team -> {
+                List<Users> teamMembers = team.getTeamUsers() != null ? team.getTeamUsers().stream()
+                    .filter(Objects::nonNull)
+                    .map(TeamUsers::getUsers)
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toList()) : Collections.emptyList();
+                return new TeamResponseDto(team, teamMembers);
+            })
+            .collect(Collectors.toList());
+    }
+    
+    @Transactional
+    public void deleteTeamById(Long id, HttpServletRequest request) {
+        checkAdminRole(request);
+        Teams teams = teamsRepository.findById(id)
+            .orElseThrow(() -> new CustomException(ErrorCode.TEAM_NOT_FOUND));
+        chatRoomsRepository.deleteAllByTeamsId(teams.getId());
+        codeRunsRepository.deleteAllByTeams(teams);
+        teamUsersRepository.deleteAllByTeams(teams);
+        winnersRepository.deleteAllByTeams(teams);
+        teamsRepository.delete(teams);
+    }
+    
     @Transactional
     public void deleteAllTeams() {
         entityManager.createNativeQuery("SET FOREIGN_KEY_CHECKS = 0").executeUpdate();
@@ -174,12 +231,10 @@ public class TeamsService {
             chatRoomsRepository.deleteAllByTeamsId(teams.getId());
             codeRunsRepository.deleteAllByTeams(teams);
             teamUsersRepository.deleteAllByTeams(teams);
-            winnersRepository.deleteAllByTeams(teams);
             teamsRepository.delete(teams);
         }
         
         resetAutoIncrementColumns();
-        
         entityManager.createNativeQuery("SET FOREIGN_KEY_CHECKS = 1").executeUpdate();
     }
     
@@ -191,5 +246,14 @@ public class TeamsService {
         entityManager.createNativeQuery("ALTER TABLE coderuns AUTO_INCREMENT = 1").executeUpdate();
         entityManager.createNativeQuery("ALTER TABLE chatroomusers AUTO_INCREMENT = 1").executeUpdate();
         entityManager.close();
+    }
+    
+    private void checkAdminRole(HttpServletRequest request) {
+        String token = jwtUtil.getJwtFromHeader(request);
+        Claims claims = jwtUtil.getUserInfoFromToken(token);
+        String role = "ROLE_" + claims.get("auth").toString().trim();
+        if (!RoleEnum.ADMIN.getAuthority().equals(role)) {
+            throw new CustomException(ErrorCode.NOT_UNAUTHORIZED);
+        }
     }
 }

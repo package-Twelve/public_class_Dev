@@ -8,6 +8,7 @@ import com.sparta.publicclassdev.global.entity.Timestamped;
 import com.sparta.publicclassdev.global.exception.CustomException;
 import com.sparta.publicclassdev.global.exception.ErrorCode;
 import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -19,6 +20,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import java.time.LocalDateTime;
 import java.util.List;
 import lombok.Builder;
 import lombok.Getter;
@@ -36,6 +38,7 @@ public class Communities extends Timestamped {
 
     private String title;
 
+    @Column(columnDefinition = "TEXT")
     private String content;
 
     @Enumerated(EnumType.STRING)
@@ -49,7 +52,8 @@ public class Communities extends Timestamped {
     private Users user;
 
     @Builder
-    public Communities(String title, String content, Category category, Users user){
+    public Communities(Long id,String title, String content, Category category, Users user){
+        this.id = id;
         this.title = title;
         this.content = content;
         this.category = category;

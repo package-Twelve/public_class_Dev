@@ -13,15 +13,12 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
 public class CommunityCommentsService {
 
-    private static final Logger log = LoggerFactory.getLogger(CommunityCommentsService.class);
     private final CommunityCommentsRepository repository;
     private final CommunitiesRepository communityRepository;
     public CommunityCommentResponseDto createComment(Long communityId, CommunityCommentsRequestDto requestDto, Users user) {
