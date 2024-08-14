@@ -49,11 +49,11 @@ class CommunitiesRepositoryTest {
                 .category(Category.INFO)
                 .user(user)
                 .build();
-            communitiesRepository.save(communities);
 
             ReflectionTestUtils.setField(communities, "createdAt", LocalDateTime.now().plusMinutes(i));
-
             ReflectionTestUtils.setField(communities, "modifiedAt", LocalDateTime.now().plusMinutes(i));
+
+            communitiesRepository.save(communities);
         }
     }
 
@@ -85,13 +85,9 @@ class CommunitiesRepositoryTest {
     void findAllByOrderByCreatedAtDesc() {
         List<Communities> communitiesList = communitiesRepository.findAllByOrderByCreatedAtDesc();
 
-        communitiesList.forEach(community ->
-            System.out.println("Title: " + community.getTitle() + ", CreatedAt: " + community.getCreatedAt())
-        );
-
         assertThat(communitiesList).hasSize(7);
 
-        assertThat(communitiesList.get(0).getTitle()).isEqualTo("title : 0");
-        assertThat(communitiesList.get(6).getTitle()).isEqualTo("title : 6");
+        assertThat(communitiesList.get(0).getTitle()).isEqualTo("title : 6");
+        assertThat(communitiesList.get(6).getTitle()).isEqualTo("title : 0");
     }
 }
