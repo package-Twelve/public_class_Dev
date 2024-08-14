@@ -18,6 +18,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import java.time.LocalDate;
 import java.util.Collections;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -49,25 +50,27 @@ class CodeKatasControllerTest {
             .build();
     }
     
+    @DisplayName("코드카타 등록")
     @Test
     void createCodeKata() throws Exception {
-        CodeKatasResponseDto responseDto = new CodeKatasResponseDto(1L, "Test Kata", "Test contents", LocalDate.now());
+        CodeKatasResponseDto responseDto = new CodeKatasResponseDto(1L, "test", "contents", LocalDate.now());
         when(codeKatasService.createCodeKata(any(), any(CodeKatasRequestDto.class))).thenReturn(responseDto);
         
         mockMvc.perform(post("/api/codekatas/createcodekata")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content("{\"title\":\"Test Kata\", \"contents\":\"Test contents\"}"))
+                .content("{\"title\":\"test\", \"contents\":\"contents\"}"))
             .andExpect(status().isCreated())
             .andExpect(jsonPath("$.statusCode").value(201))
             .andExpect(jsonPath("$.message").value("코드카타 생성 성공"))
-            .andExpect(jsonPath("$.data.title").value("Test Kata"))
-            .andExpect(jsonPath("$.data.contents").value("Test contents"));
+            .andExpect(jsonPath("$.data.title").value("test"))
+            .andExpect(jsonPath("$.data.contents").value("contents"));
     }
     
+    @DisplayName("전체 코드카타 조회")
     @Test
     void getAllCodeKatas() throws Exception {
         Pageable pageable = PageRequest.of(0, 6);
-        CodeKatasResponseDto responseDto = new CodeKatasResponseDto(1L, "Test Kata", "Test contents", LocalDate.now());
+        CodeKatasResponseDto responseDto = new CodeKatasResponseDto(1L, "test", "contents", LocalDate.now());
         Page<CodeKatasResponseDto> page = new PageImpl<>(Collections.singletonList(responseDto), pageable, 1);
         when(codeKatasService.getAllCodeKatas(any(HttpServletRequest.class), any(Pageable.class))).thenReturn(page);
         
@@ -77,23 +80,25 @@ class CodeKatasControllerTest {
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.statusCode").value(200))
             .andExpect(jsonPath("$.message").value("전체 코드카타 조회 성공"))
-            .andExpect(jsonPath("$.data.content[0].title").value("Test Kata"))
-            .andExpect(jsonPath("$.data.content[0].contents").value("Test contents"));
+            .andExpect(jsonPath("$.data.content[0].title").value("test"))
+            .andExpect(jsonPath("$.data.content[0].contents").value("contents"));
     }
     
+    @DisplayName("코드카타 단건 조회")
     @Test
     void getCodeKata() throws Exception {
-        CodeKatasResponseDto responseDto = new CodeKatasResponseDto(1L, "Test Kata", "Test contents", LocalDate.now());
+        CodeKatasResponseDto responseDto = new CodeKatasResponseDto(1L, "test", "contents", LocalDate.now());
         when(codeKatasService.getCodeKata(any(HttpServletRequest.class), anyLong())).thenReturn(responseDto);
         
         mockMvc.perform(get("/api/codekatas/1"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.statusCode").value(200))
             .andExpect(jsonPath("$.message").value("코드카타 조회 성공"))
-            .andExpect(jsonPath("$.data.title").value("Test Kata"))
-            .andExpect(jsonPath("$.data.contents").value("Test contents"));
+            .andExpect(jsonPath("$.data.title").value("test"))
+            .andExpect(jsonPath("$.data.contents").value("contents"));
     }
     
+    @DisplayName("코드카타 수정")
     @Test
     void updateCodeKata() throws Exception {
         CodeKatasRequestDto requestDto = new CodeKatasRequestDto("Updated Kata", "Updated contents");
@@ -110,6 +115,7 @@ class CodeKatasControllerTest {
             .andExpect(jsonPath("$.data.contents").value("Updated contents"));
     }
     
+    @DisplayName("코드카타 수정")
     @Test
     void deleteCodeKata() throws Exception {
         mockMvc.perform(delete("/api/codekatas/1"))
@@ -118,6 +124,7 @@ class CodeKatasControllerTest {
             .andExpect(jsonPath("$.message").value("코드카타 삭제 성공"));
     }
     
+    @DisplayName("랜덤 코드카타 등록")
     @Test
     void createRandomCodeKata() throws Exception {
         CodeKatasResponseDto responseDto = new CodeKatasResponseDto(1L, "Random Kata", "Random contents", LocalDate.now());
@@ -132,6 +139,7 @@ class CodeKatasControllerTest {
             .andExpect(jsonPath("$.data.contents").value("Random contents"));
     }
     
+    @DisplayName("오늘의 코드카타 생성")
     @Test
     void getTodayCodeKata() throws Exception {
         CodeKatasResponseDto responseDto = new CodeKatasResponseDto(1L, "Today Kata", "Today contents", LocalDate.now());
