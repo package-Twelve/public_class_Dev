@@ -5,7 +5,10 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
 
 import com.sparta.publicclassdev.domain.codereview.dto.CodeReviewsRequestDto;
 import com.sparta.publicclassdev.domain.codereview.entity.CodeReviews;
@@ -15,9 +18,14 @@ import com.sparta.publicclassdev.domain.codereviewcomment.repository.CodeReviewC
 import com.sparta.publicclassdev.domain.users.entity.RoleEnum;
 import com.sparta.publicclassdev.domain.users.entity.Users;
 import com.sparta.publicclassdev.domain.users.repository.UsersRepository;
+import com.sparta.publicclassdev.global.aws.AwsS3Util;
 import com.sparta.publicclassdev.global.exception.CustomException;
 import com.sparta.publicclassdev.global.exception.ErrorCode;
-import io.minio.MinioClient;
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -51,7 +59,7 @@ public class CodeReviewsServiceUnitTest {
   private UsersRepository usersRepository;
 
   @Mock
-  private MinioClient minioClient;
+  private AwsS3Util awsS3Util;
 
   @InjectMocks
   private CodeReviewsService codeReviewsService;
@@ -220,17 +228,78 @@ public class CodeReviewsServiceUnitTest {
     assertEquals("#java #codetest #security ", arrangedCategory);
   }
 
-  @Test
-  void testUploadCodeFile() {
-    // given
-    String code = createTestCode(testCodeReviewId);
-    String filename = "codereviews-code/code-1.txt";
+  @Nested
+  class uploadCodeFileTest {
 
-    // when
-    String result = codeReviewsService.uploadCodeFile(testCodeReviewId, code);
+    @Test
+    void testUploadCodeFile() throws IOException {
+      // given
+      String code = createTestCode(testCodeReviewId);
+      String filename = "codereviews-code/code-1.txt";
 
-    // then
-    assertEquals(filename, result);
+      doNothing().when(awsS3Util).uploadFile(anyString(), any(File.class));
+
+      // when
+      String result = codeReviewsService.uploadCodeFile(testCodeReviewId, code);
+
+      // then
+      assertEquals(filename, result);
+    }
+
+    @Test
+    void testUploadCodeFile_UploadFail() throws IOException {
+      // given
+      String code = createTestCode(testCodeReviewId);
+      String filename = "codereviews-code/code-1.txt";
+
+      doThrow(new IOException()).when(awsS3Util).uploadFile(anyString(), any(File.class));
+
+      // when &  then
+      CustomException exception = assertThrows(CustomException.class, () -> {
+        codeReviewsService.uploadCodeFile(testCodeReviewId, code);
+      });
+      assertEquals(ErrorCode.FILE_UPLOAD_FAILED, exception.getErrorCode());
+    }
+  }
+
+  @Nested
+  class DownloadCodeFileTest {
+
+    @Test
+    void testDownloadCodeFile() throws IOException {
+      // given
+      Users user = createTestUser();
+      CodeReviews codeReviews = createTestCodeReviews(user);
+      String filename = createTestCode(testCodeReviewId);
+      String downloadedCode = "Test Code {}";
+      InputStream mockInputStream = new ByteArrayInputStream(
+          downloadedCode.getBytes(StandardCharsets.UTF_8));
+
+      given(awsS3Util.downloadFile(filename)).willReturn(mockInputStream);
+
+      // when
+      String result = codeReviewsService.downloadCodeFile(codeReviews);
+
+      // then
+      assertEquals(downloadedCode, result);
+    }
+
+    @Test
+    void testDownloadCodeFile_DownloadFail() throws IOException {
+      // given
+      Users user = createTestUser();
+      CodeReviews codeReviews = createTestCodeReviews(user);
+      String filename = createTestCode(testCodeReviewId);
+      String downloadedCode = "Test Code {}";
+
+      given(awsS3Util.downloadFile(filename)).willThrow(new IOException());
+
+      // when & then
+      CustomException exception = assertThrows(CustomException.class, () -> {
+        codeReviewsService.downloadCodeFile(codeReviews);
+      });
+      assertEquals(ErrorCode.FILE_DOWNLOAD_FAILED, exception.getErrorCode());
+    }
   }
 
 }
