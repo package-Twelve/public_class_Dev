@@ -2,7 +2,9 @@ package com.sparta.publicclassdev.domain.users.entity;
 
 import com.sparta.publicclassdev.domain.chatrooms.entity.ChatRoomUsers;
 import com.sparta.publicclassdev.domain.chatrooms.entity.Messages;
+import com.sparta.publicclassdev.domain.coderuns.entity.CodeRuns;
 import com.sparta.publicclassdev.domain.teams.entity.TeamUsers;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -53,7 +55,10 @@ public class Users {
 
     @OneToMany(mappedBy = "users")
     private List<Messages> messages;
-
+    
+    @OneToMany(mappedBy = "users", cascade = CascadeType.REMOVE)
+    private List<CodeRuns> codeRuns;
+    
     @Builder
     public Users(String name, String email, String password, int point, RoleEnum role) {
         this.name = name;

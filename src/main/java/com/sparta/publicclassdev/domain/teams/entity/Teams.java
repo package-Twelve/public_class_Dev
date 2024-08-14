@@ -30,16 +30,16 @@ public class Teams extends Timestamped {
     private String name;
     
     @OneToMany(mappedBy = "teams", orphanRemoval = true, cascade = CascadeType.ALL)
-    private List<TeamUsers> teamUsers;
+    private List<TeamUsers> teamUsers = new ArrayList<>();
     
     @OneToMany(mappedBy = "teams", orphanRemoval = true, cascade = CascadeType.ALL)
-    private List<ChatRooms> chatRooms;
+    private List<ChatRooms> chatRooms = new ArrayList<>();
     
     @OneToMany(mappedBy = "teams", cascade = CascadeType.ALL)
     private List<Winners> winners;
     
     @OneToMany(mappedBy = "teams", orphanRemoval = true, cascade = CascadeType.ALL)
-    private List<CodeRuns> codeRuns;
+    private List<CodeRuns> codeRuns = new ArrayList<>();
     
     @Builder
     public Teams(String name) {

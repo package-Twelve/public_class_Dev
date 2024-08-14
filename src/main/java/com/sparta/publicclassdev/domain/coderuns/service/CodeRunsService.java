@@ -95,10 +95,10 @@ public class CodeRunsService {
     
     private CodeRuns getCreateCodeRun(Long teamsId, Long codeKatasId, String code, String language,
         String result, long responseTime, Teams teams, CodeKatas codeKatas, Users users) {
-        Optional<CodeRuns> runCode = codeRunsRepository.findByTeamsIdAndCodeKatasId(teamsId, codeKatasId);
+        List<CodeRuns> runCode = codeRunsRepository.findByTeamsIdAndCodeKatasId(teamsId, codeKatasId);
         CodeRuns codeRuns;
-        if (runCode.isPresent()) {
-            codeRuns = runCode.get();
+        if (runCode.isEmpty()) {
+            codeRuns = runCode.get(0);
             if (responseTime < codeRuns.getResponseTime()) {
                 codeRuns.updateResponseTime(responseTime, result);
                 codeRunsRepository.save(codeRuns);
