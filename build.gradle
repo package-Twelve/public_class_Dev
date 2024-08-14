@@ -51,6 +51,9 @@ dependencies {
     testImplementation('org.junit.jupiter:junit-jupiter')
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 
+    // AWS SDK
+    implementation 'org.springframework.cloud:spring-cloud-starter-aws:2.2.6.RELEASE'
+
     // minio
     implementation 'io.minio:minio:8.3.4'
 

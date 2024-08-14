@@ -38,3 +38,6 @@ out/
 
 application-secrets.yml
 http-client.private.env.json
+
+### env ###
+*.env
