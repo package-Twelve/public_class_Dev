@@ -19,7 +19,7 @@ class JavaCodeRunnerTest {
     
     @Test
     @DisplayName("유효한 Java 코드 테스트")
-    void runValidJavaCode() {
+    void runJavaCode() {
         String code = "public class Test { public static void main(String[] args) { System.out.println(\"Hello, World!\"); } }";
         String output = codeRunner.runCode(code);
         assertTrue(output.contains("Hello, World!"), "결과값 : 'Hello, World!'");
@@ -27,7 +27,7 @@ class JavaCodeRunnerTest {
     
     @Test
     @DisplayName("잘못된 코드는 CustomException 테스트")
-    void runInvalidJavaCode() {
+    void runInvalidCode() {
         String code = "public class Test { public static void main(String[] args) { System.out.println(Hello, World!); } }";
         CustomException thrown = assertThrows(CustomException.class, () -> codeRunner.runCode(code));
         assertEquals(ErrorCode.INVALID_REQUEST, thrown.getErrorCode(), "INVALID_REQUEST 에러 발생");
@@ -35,7 +35,7 @@ class JavaCodeRunnerTest {
     
     @Test
     @DisplayName("허용되지 않는 작업이 포함된 코드는 테스트")
-    void runCodeWithDisallowedOperations() {
+    void runDisallowedCode() {
         String code = "import java.io.*; public class Test { public static void main(String[] args) { System.exit(1); } }";
         CustomException thrown = assertThrows(CustomException.class, () -> codeRunner.runCode(code));
         assertEquals(ErrorCode.INVALID_CODE, thrown.getErrorCode(), "INVALID_CODE 에러 발생");

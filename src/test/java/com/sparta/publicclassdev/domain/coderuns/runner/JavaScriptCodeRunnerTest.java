@@ -19,7 +19,7 @@ class JavaScriptCodeRunnerTest {
     
     @Test
     @DisplayName("유효한 JavaScript 코드 테스트")
-    void runValidJavaScriptCode() {
+    void runJavaScriptCode() {
         String code = "console.log('Hello, World!');";
         String output = codeRunner.runCode(code);
         assertTrue(output.contains("Hello, World!"), "결과값 : 'Hello, World!'");
@@ -27,7 +27,7 @@ class JavaScriptCodeRunnerTest {
     
     @Test
     @DisplayName("허용되지 않는 작업이 포함된 코드 테스트")
-    void runJavaScriptCodeWithDisallowedOperations() {
+    void runInvalidCode() {
         String code = "const fs = require('fs'); console.log('Hello, World!');";
         CustomException thrown = assertThrows(CustomException.class, () -> codeRunner.runCode(code));
         assertEquals(ErrorCode.INVALID_CODE, thrown.getErrorCode(), "INVALID_CODE 에러 발생");

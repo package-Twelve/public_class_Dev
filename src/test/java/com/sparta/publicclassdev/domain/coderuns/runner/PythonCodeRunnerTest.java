@@ -19,7 +19,7 @@ class PythonCodeRunnerTest {
     
     @Test
     @DisplayName("유효한 Python 코드 테스트")
-    void runValidPythonCode() {
+    void runPythonCode() {
         String code = "print('Python')";
         String result = codeRunner.runCode(code);
         assertTrue(result.contains("Python"));
@@ -27,7 +27,7 @@ class PythonCodeRunnerTest {
     
     @Test
     @DisplayName("허용되지 않는 작업이 포함된 코드 테스트")
-    void runPythonCodeWithDisallowedOperations() {
+    void runInvalidCode() {
         String code = "import os; print('Hello, World!')";
         CustomException thrown = assertThrows(CustomException.class, () -> codeRunner.runCode(code));
         assertEquals(ErrorCode.INVALID_CODE, thrown.getErrorCode(), "INVALID_CODE 에러 발생");
