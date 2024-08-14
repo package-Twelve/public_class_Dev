@@ -13,6 +13,7 @@ import com.sparta.publicclassdev.domain.users.entity.Users;
 import com.sparta.publicclassdev.global.exception.CustomException;
 import com.sparta.publicclassdev.global.exception.ErrorCode;
 import jakarta.annotation.PostConstruct;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -51,9 +52,9 @@ public class CommunitiesService {
             .user(user)
             .build();
 
-        repository.save(community);
+        Communities saveCommunity = repository.save(community);
 
-        return new CommunitiesResponseDto(requestDto.getTitle(), requestDto.getContent(), requestDto.getCategory());
+        return new CommunitiesResponseDto(saveCommunity.getId(), saveCommunity.getCreatedAt(), saveCommunity.getTitle(), saveCommunity.getTitle(), saveCommunity.getCategory());
     }
 
     public CommunitiesResponseDto updatePost(Users user, Long communityId, CommunitiesUpdateRequestDto requestDto) {
@@ -90,10 +91,14 @@ public class CommunitiesService {
     public CommunitiesResponseDto findPost(Long communityId) {
         Communities community = checkCommunity(communityId);
         List<CommunityComments> commentsList = community.getCommentsList();
+        if (commentsList == null) {
+            commentsList = Collections.emptyList();
+        }
         List<CommunityCommentResponseDto> responseDto = commentsList.stream().map(communityComments -> new CommunityCommentResponseDto(communityComments.getContent(), communityComments.getId()))
             .toList();
         return new CommunitiesResponseDto(community.getId(), community.getTitle(), community.getContent(), community.getCreatedAt(), community.getCategory(), community.getUser().getName(), responseDto);
     }
+
     public Communities checkCommunity(Long communityId){
         return repository.findById(communityId).orElseThrow(
             () -> new CustomException(ErrorCode.NOT_FOUND_COMMUNITY_POST)

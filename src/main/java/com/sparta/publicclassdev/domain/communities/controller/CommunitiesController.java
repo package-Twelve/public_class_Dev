@@ -70,12 +70,12 @@ public class CommunitiesController {
     public ResponseEntity<DataResponse<List<CommunitiesResponseDto>>> searchPost
         (@RequestParam("keyword") String keyword){
         List<CommunitiesResponseDto> responseDto = service.searchPost(keyword);
-        return ResponseEntity.status(HttpStatus.OK).body(new DataResponse<>(HttpStatus.OK.value(), " 조회 완료", responseDto));
+        return ResponseEntity.status(HttpStatus.OK).body(new DataResponse<>(HttpStatus.OK.value(), "조회 완료", responseDto));
     }
 
     @GetMapping("/community/searchRank")
     public ResponseEntity<DataResponse<List<CommunitiesRankDto>>> ranking(){
         List<CommunitiesRankDto> rankDto = service.rank();
-        return ResponseEntity.status(HttpStatus.OK).body(new DataResponse<>(HttpStatus.OK.value(), " 조회 완료", rankDto));
+        return ResponseEntity.status(HttpStatus.OK).body(new DataResponse<>(HttpStatus.OK.value(), "조회 완료", rankDto));
     }
 }
