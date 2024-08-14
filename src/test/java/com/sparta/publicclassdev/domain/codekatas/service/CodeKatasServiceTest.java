@@ -2,74 +2,62 @@ package com.sparta.publicclassdev.domain.codekatas.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.jayway.jsonpath.JsonPath;
-import com.sparta.publicclassdev.TestConfig;
 import com.sparta.publicclassdev.domain.codekatas.dto.CodeKatasRequestDto;
+import com.sparta.publicclassdev.domain.codekatas.dto.CodeKatasResponseDto;
 import com.sparta.publicclassdev.domain.codekatas.entity.CodeKatas;
 import com.sparta.publicclassdev.domain.codekatas.repository.CodeKatasRepository;
 import com.sparta.publicclassdev.domain.users.entity.RoleEnum;
 import com.sparta.publicclassdev.domain.users.entity.Users;
 import com.sparta.publicclassdev.domain.users.repository.UsersRepository;
 import com.sparta.publicclassdev.global.security.JwtUtil;
-import java.nio.charset.StandardCharsets;
+import jakarta.servlet.http.HttpServletRequest;
+import java.time.LocalDate;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.Import;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.util.ReflectionTestUtils;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.transaction.annotation.Transactional;
 
 @SpringBootTest
-@AutoConfigureMockMvc
-@ActiveProfiles("test")
-public class CodeKatasServiceTest {
+@Transactional
+class CodeKatasServiceTest {
     
     @Autowired
-    private MockMvc mockMvc;
-    
-    @Autowired
-    private ObjectMapper objectMapper;
-    
-    @Autowired
-    private UsersRepository usersRepository;
+    private CodeKatasService codeKatasService;
     
     @Autowired
     private CodeKatasRepository codeKatasRepository;
     
     @Autowired
+    private UsersRepository usersRepository;
+    
+    @Autowired
     private JwtUtil jwtUtil;
     
-    private Users user;
-    private String token;
+    private Users adminUser;
+    private HttpServletRequest mockRequest;
     
     @BeforeEach
     void setUp() {
         usersRepository.deleteAll();
         codeKatasRepository.deleteAll();
         
-        user = createUser();
-        usersRepository.save(user);
-        token = jwtUtil.createAccessToken(user);
+        adminUser = createUser();
+        usersRepository.save(adminUser);
+        
+        mockRequest = Mockito.mock(HttpServletRequest.class);
+        Mockito.when(mockRequest.getHeader("Authorization"))
+            .thenReturn(jwtUtil.createAccessToken(adminUser));
     }
     
     private Users createUser() {
-        codeKatasRepository.deleteAll();
         Users user = Users.builder()
             .name("testuser")
             .email("testuser@email.com")
@@ -82,114 +70,126 @@ public class CodeKatasServiceTest {
         return user;
     }
     
-    private CodeKatasRequestDto createCodeKatasRequestDto() {
-        CodeKatasRequestDto requestDto = new CodeKatasRequestDto();
-        ReflectionTestUtils.setField(requestDto, "title", "testkata");
-        ReflectionTestUtils.setField(requestDto, "contents", "test contents");
-        return requestDto;
-    }
-    
-    @DisplayName("코드카타 생성")
     @Test
-    public void testCreateCodeKata() throws Exception {
-        CodeKatasRequestDto requestDto = createCodeKatasRequestDto();
+    @DisplayName("코드카타 생성 테스트")
+    void testCreateCodeKata() {
+        CodeKatasRequestDto requestDto = new CodeKatasRequestDto("testkata", "test contents");
         
-        MvcResult result = mockMvc.perform(post("/api/codekatas/createcodekata")
-                .header(HttpHeaders.AUTHORIZATION, token)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(requestDto)))
-            .andExpect(status().isCreated())
-            .andExpect(jsonPath("$.statusCode").value(201))
-            .andExpect(jsonPath("$.message").value("코드카타 생성 성공"))
-            .andExpect(jsonPath("$.data.title").value("testkata"))
-            .andReturn();
+        CodeKatasResponseDto responseDto = codeKatasService.createCodeKata(mockRequest, requestDto);
         
-        String responseBody = result.getResponse().getContentAsString(StandardCharsets.UTF_8);
-        String message = JsonPath.parse(responseBody).read("$.message");
-        
-        assertEquals("코드카타 생성 성공", message);
+        assertThat(responseDto).isNotNull();
+        assertEquals("testkata", responseDto.getTitle());
+        assertEquals("test contents", responseDto.getContents());
         assertEquals(1, codeKatasRepository.count());
     }
     
-    @DisplayName("코드카타 단건 조회")
     @Test
-    public void testGetCodeKata() throws Exception {
-        CodeKatas codeKata = CodeKatas.builder()
+    @DisplayName("코드카타 단건 조회 테스트")
+    void testGetCodeKata() {
+        CodeKatas codeKata = codeKatasRepository.save(CodeKatas.builder()
             .title("testkata")
             .contents("test contents")
-            .build();
-        codeKatasRepository.save(codeKata);
+            .markDate(null)
+            .build());
         
-        mockMvc.perform(get("/api/codekatas/" + codeKata.getId())
-                .header(HttpHeaders.AUTHORIZATION, token)
-                .contentType(MediaType.APPLICATION_JSON))
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.data.title").value("testkata"))
-            .andExpect(jsonPath("$.data.contents").value("test contents"));
+        CodeKatasResponseDto responseDto = codeKatasService.getCodeKata(mockRequest,
+            codeKata.getId());
+        
+        assertThat(responseDto).isNotNull();
+        assertEquals("testkata", responseDto.getTitle());
+        assertEquals("test contents", responseDto.getContents());
     }
     
-    @DisplayName("코드카타 전체 조회")
     @Test
-    public void testGetAllCodeKatas() throws Exception {
-        CodeKatas codeKata1 = CodeKatas.builder()
+    @DisplayName("코드카타 전체 조회 테스트")
+    void testGetAllCodeKatas() {
+        codeKatasRepository.save(CodeKatas.builder()
             .title("kata1")
             .contents("contents1")
-            .build();
-        CodeKatas codeKata2 = CodeKatas.builder()
+            .markDate(null)
+            .build());
+        
+        codeKatasRepository.save(CodeKatas.builder()
             .title("kata2")
             .contents("contents2")
-            .build();
-        codeKatasRepository.save(codeKata1);
-        codeKatasRepository.save(codeKata2);
+            .markDate(null)
+            .build());
         
-        mockMvc.perform(get("/api/codekatas/all")
-                .header(HttpHeaders.AUTHORIZATION, token)
-                .contentType(MediaType.APPLICATION_JSON))
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.data.content.length()").value(2))
-            .andExpect(jsonPath("$.data.content[0].title").value("kata1"))
-            .andExpect(jsonPath("$.data.content[1].title").value("kata2"));
+        List<CodeKatasResponseDto> responseList = codeKatasService.getAllCodeKatas(mockRequest,
+            Pageable.unpaged()).getContent();
+        
+        assertThat(responseList).hasSize(2);
+        assertThat(responseList.get(0).getTitle()).isEqualTo("kata1");
+        assertThat(responseList.get(1).getTitle()).isEqualTo("kata2");
     }
     
-    @DisplayName("코드카타 삭제")
     @Test
-    public void testDeleteCodeKata() throws Exception {
-        CodeKatas codeKata = CodeKatas.builder()
+    @DisplayName("코드카타 삭제 테스트")
+    void testDeleteCodeKata() {
+        CodeKatas codeKata = codeKatasRepository.save(CodeKatas.builder()
             .title("testkata")
             .contents("test contents")
-            .build();
-        codeKatasRepository.save(codeKata);
+            .markDate(null)
+            .build());
         
-        mockMvc.perform(delete("/api/codekatas/" + codeKata.getId())
-                .header(HttpHeaders.AUTHORIZATION, token)
-                .contentType(MediaType.APPLICATION_JSON))
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.message").value("코드카타 삭제 성공"));
+        codeKatasService.deleteCodeKata(mockRequest, codeKata.getId());
         
         assertThat(codeKatasRepository.findById(codeKata.getId())).isEmpty();
     }
     
-    @DisplayName("코드카타 수정")
     @Test
-    public void testUpdateCodeKata() throws Exception {
-        CodeKatas codeKata = CodeKatas.builder()
+    @DisplayName("코드카타 수정 테스트")
+    void testUpdateCodeKata() {
+        CodeKatas codeKata = codeKatasRepository.save(CodeKatas.builder()
             .title("oldtitle")
             .contents("old contents")
-            .build();
-        codeKatasRepository.save(codeKata);
+            .markDate(null)
+            .build());
         
         CodeKatasRequestDto updateRequestDto = new CodeKatasRequestDto("newtitle", "new contents");
         
-        mockMvc.perform(put("/api/codekatas/" + codeKata.getId())
-                .header(HttpHeaders.AUTHORIZATION, token)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(updateRequestDto)))
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.data.title").value("newtitle"))
-            .andExpect(jsonPath("$.data.contents").value("new contents"));
+        CodeKatasResponseDto responseDto = codeKatasService.updateCodeKata(mockRequest,
+            codeKata.getId(), updateRequestDto);
         
-        CodeKatas updatedCodeKata = codeKatasRepository.findById(codeKata.getId()).orElseThrow();
-        assertThat(updatedCodeKata.getTitle()).isEqualTo("newtitle");
-        assertThat(updatedCodeKata.getContents()).isEqualTo("new contents");
+        assertThat(responseDto).isNotNull();
+        assertEquals("newtitle", responseDto.getTitle());
+        assertEquals("new contents", responseDto.getContents());
+    }
+    
+    @Test
+    @DisplayName("오늘의 코드카타 조회 테스트")
+    void testGetTodayCodeKata() {
+        CodeKatas codeKata = codeKatasRepository.save(CodeKatas.builder()
+            .title("testkata")
+            .contents("test contents")
+            .markDate(LocalDate.now())
+            .build());
+        
+        CodeKatasResponseDto responseDto = codeKatasService.getTodayCodeKata();
+        
+        assertThat(responseDto).isNotNull();
+        assertEquals("testkata", responseDto.getTitle());
+        assertEquals("test contents", responseDto.getContents());
+    }
+    
+    @Test
+    @DisplayName("랜덤 코드카타 생성 테스트")
+    void testCreateRandomCodeKata() {
+        CodeKatas codeKata1 = codeKatasRepository.save(CodeKatas.builder()
+            .title("kata1")
+            .contents("contents1")
+            .markDate(null)
+            .build());
+        
+        CodeKatas codeKata2 = codeKatasRepository.save(CodeKatas.builder()
+            .title("kata2")
+            .contents("contents2")
+            .markDate(null)
+            .build());
+        
+        CodeKatasResponseDto responseDto = codeKatasService.createRandomCodeKata();
+        
+        assertThat(responseDto).isNotNull();
+        assertThat(responseDto.getTitle()).isIn("kata1", "kata2");
     }
 }
