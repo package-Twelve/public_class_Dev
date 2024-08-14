@@ -15,6 +15,7 @@ import com.sparta.publicclassdev.domain.coderuns.entity.CodeRuns;
 import com.sparta.publicclassdev.domain.coderuns.repository.CodeRunsRepository;
 import com.sparta.publicclassdev.domain.teams.entity.TeamUsers;
 import com.sparta.publicclassdev.domain.teams.entity.Teams;
+import com.sparta.publicclassdev.domain.teams.repository.TeamUsersRepository;
 import com.sparta.publicclassdev.domain.teams.repository.TeamsRepository;
 import com.sparta.publicclassdev.domain.users.entity.RoleEnum;
 import com.sparta.publicclassdev.domain.users.entity.Users;
@@ -32,7 +33,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
@@ -54,6 +54,9 @@ public class CodeRunsServiceTest {
     private TeamsRepository teamsRepository;
     
     @Autowired
+    private TeamUsersRepository teamUsersRepository;
+    
+    @Autowired
     private CodeRunsRepository codeRunsRepository;
     
     @Autowired
@@ -70,6 +73,7 @@ public class CodeRunsServiceTest {
     @BeforeEach
     void setUp() {
         codeRunsRepository.deleteAll();
+        teamUsersRepository.deleteAll();
         usersRepository.deleteAll();
         teamsRepository.deleteAll();
         codeKatasRepository.deleteAll();
@@ -88,35 +92,26 @@ public class CodeRunsServiceTest {
     }
     
     private Users createUser() {
-        Users user = Users.builder()
+        return Users.builder()
             .name("testuser")
             .email("testuser@email.com")
             .password(new BCryptPasswordEncoder().encode("password"))
             .role(RoleEnum.ADMIN)
             .point(0)
             .build();
-        
-        ReflectionTestUtils.setField(user, "id", 1L);
-        return user;
     }
     
     private Teams createTeam() {
-        Teams team = Teams.builder()
+        return Teams.builder()
             .name("testteam")
             .build();
-        
-        ReflectionTestUtils.setField(team, "id", 1L);
-        return team;
     }
     
     private CodeKatas createCodeKatas() {
-        CodeKatas codeKatas = CodeKatas.builder()
+        return CodeKatas.builder()
             .title("test CodeKata")
             .contents("test contents")
             .build();
-        
-        ReflectionTestUtils.setField(codeKatas, "id", 1L);
-        return codeKatas;
     }
     
     private void addUserToTeam(Users user, Teams team) {
@@ -147,11 +142,10 @@ public class CodeRunsServiceTest {
     public void testCreateCodeRun() throws Exception {
         CodeRunsRequestDto requestDto = createCodeRunsRequestDto();
         
-        MvcResult result = mockMvc.perform(
-                post("/api/coderuns/myteam/{teamsId}/1/runs", team.getId())
-                    .header(HttpHeaders.AUTHORIZATION, token)
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(requestDto)))
+        MvcResult result = mockMvc.perform(post("/api/coderuns/myteam/{teamsId}/{codeKatasId}/runs", team.getId(), codeKatas.getId())
+                .header(HttpHeaders.AUTHORIZATION, token)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(requestDto)))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.language").value("java"))
             .andExpect(jsonPath("$.code").value("public class Test {}"))

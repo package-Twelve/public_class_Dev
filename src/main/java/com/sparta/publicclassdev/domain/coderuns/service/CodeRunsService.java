@@ -98,12 +98,6 @@ public class CodeRunsService {
         List<CodeRuns> runCode = codeRunsRepository.findByTeamsIdAndCodeKatasId(teamsId, codeKatasId);
         CodeRuns codeRuns;
         if (runCode.isEmpty()) {
-            codeRuns = runCode.get(0);
-            if (responseTime < codeRuns.getResponseTime()) {
-                codeRuns.updateResponseTime(responseTime, result);
-                codeRunsRepository.save(codeRuns);
-            }
-        } else {
             codeRuns = CodeRuns.builder()
                 .code(code)
                 .responseTime(responseTime)
@@ -114,6 +108,12 @@ public class CodeRunsService {
                 .users(users)
                 .build();
             codeRunsRepository.save(codeRuns);
+        } else {
+            codeRuns = runCode.get(0);
+            if (responseTime < codeRuns.getResponseTime()) {
+                codeRuns.updateResponseTime(responseTime, result);
+                codeRunsRepository.save(codeRuns);
+            }
         }
         return codeRuns;
     }
