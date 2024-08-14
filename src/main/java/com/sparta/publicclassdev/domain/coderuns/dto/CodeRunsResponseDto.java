@@ -1,5 +1,6 @@
 package com.sparta.publicclassdev.domain.coderuns.dto;
 
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -16,6 +17,7 @@ public class CodeRunsResponseDto {
     private String code;
     private String language;
     
+    @Builder
     public CodeRunsResponseDto(Long id, Long codeKatasId, Long teamsId, Long usersId, Long responseTime, String result, String code, String language) {
         this.id = id;
         this.codeKatasId = codeKatasId;
