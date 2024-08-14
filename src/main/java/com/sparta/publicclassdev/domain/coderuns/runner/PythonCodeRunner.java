@@ -30,7 +30,7 @@ public class PythonCodeRunner implements CodeRunner {
                 fileWriter.write(code);
             }
             
-            long startTime = System.currentTimeMillis();
+            Long startTime = System.currentTimeMillis();
             
             ProcessBuilder processBuilder = new ProcessBuilder(command, scriptFile.getAbsolutePath());
             processBuilder.redirectErrorStream(true);
@@ -49,8 +49,8 @@ public class PythonCodeRunner implements CodeRunner {
             }
             bufferedReader.close();
             
-            long endTime = System.currentTimeMillis();
-            long responseTime = endTime - startTime;
+            Long endTime = System.currentTimeMillis();
+            Long responseTime = endTime - startTime;
             scriptFile.delete();
             
             stringBuilder.append("Execution time: ").append(responseTime).append(" ms");
