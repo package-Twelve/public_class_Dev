@@ -12,6 +12,7 @@ import jakarta.transaction.Transactional;
 import java.time.LocalDateTime;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
@@ -49,26 +50,28 @@ class CommunitiesRepositoryTest {
                 .user(user)
                 .build();
             communitiesRepository.save(communities);
-            ReflectionTestUtils.setField(communities, "createdAt", LocalDateTime.now());
+
+            ReflectionTestUtils.setField(communities, "createdAt", LocalDateTime.now().plusMinutes(i));
+
+            ReflectionTestUtils.setField(communities, "modifiedAt", LocalDateTime.now().plusMinutes(i));
         }
     }
 
     @Test
+    @Order(1)
     @Transactional
     void findPostByUserLimit5() {
         List<Communities> communitiesList = communitiesRepository.findPostByUserLimit5(user);
 
         assertThat(communitiesList).hasSize(5);
 
-        communitiesList.forEach(community ->
-            System.out.println("Title: " + community.getTitle() + ", CreatedAt: " + community.getCreatedAt())
-        );
 
         assertThat(communitiesList.get(0).getTitle()).isEqualTo("title : 6");
-        assertThat(communitiesList.get(4).getTitle()).isEqualTo("title : 3");
+        assertThat(communitiesList.get(4).getTitle()).isEqualTo("title : 2");
     }
 
     @Test
+    @Order(2)
     @Transactional
     void findByTitleContainingIgnoreCase() {
         List<Communities> communitiesList = communitiesRepository.findByTitleContainingIgnoreCase("title");
@@ -77,6 +80,7 @@ class CommunitiesRepositoryTest {
     }
 
     @Test
+    @Order(3)
     @Transactional
     void findAllByOrderByCreatedAtDesc() {
         List<Communities> communitiesList = communitiesRepository.findAllByOrderByCreatedAtDesc();
