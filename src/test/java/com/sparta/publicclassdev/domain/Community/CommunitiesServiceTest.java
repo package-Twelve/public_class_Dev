@@ -1,5 +1,6 @@
 package com.sparta.publicclassdev.domain.Community;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -7,6 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
+import com.sparta.publicclassdev.domain.communities.dto.CommunitiesRankDto;
 import com.sparta.publicclassdev.domain.communities.dto.CommunitiesRequestDto;
 import com.sparta.publicclassdev.domain.communities.dto.CommunitiesResponseDto;
 import com.sparta.publicclassdev.domain.communities.dto.CommunitiesUpdateRequestDto;
@@ -27,9 +29,12 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.ZSetOperations;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.util.ReflectionTestUtils;
 
@@ -46,6 +51,9 @@ class CommunitiesServiceTest {
     @Autowired
     private UsersRepository usersRepository;
 
+    @Qualifier("redisTemplate")
+    @Autowired
+    private RedisTemplate redisTemplate;
 
     private CommunitiesRequestDto createTestRequestDto(){
         CommunitiesRequestDto requestDto = CommunitiesRequestDto.builder()
@@ -56,7 +64,6 @@ class CommunitiesServiceTest {
 
         return requestDto;
     }
-
 
     private Users createTestUser() {
         Users user = Users.builder()
@@ -262,10 +269,37 @@ class CommunitiesServiceTest {
     @Test
     @Transactional
     void searchPost() {
+        Users user = createTestUser();
+        Communities community = createTestCommunity(user);
 
+        String keyword = "Test";
+
+        List<CommunitiesResponseDto> responseDto = service.searchPost(keyword);
+
+
+        assertThat(responseDto).isNotEmpty();
+        assertThat(responseDto.get(0).getTitle()).isEqualTo("Test title");
+
+        Double score = redisTemplate.opsForZSet().score("searchRank", keyword);
+        String storedKeywordTime = (String) redisTemplate.opsForHash().get("keyword_data", keyword);
+
+        assertThat(score).isNotNull();
+        assertThat(storedKeywordTime).isNotNull();
     }
 
     @Test
+    @Transactional
     void rank() {
+        redisTemplate.getConnectionFactory().getConnection().flushDb();
+
+        ZSetOperations<String, String> zSetOperations = redisTemplate.opsForZSet();
+
+        zSetOperations.add("searchRank", "keyword1", 5);
+        zSetOperations.add("searchRank", "keyword2", 3);
+        zSetOperations.add("searchRank", "keyword3", 8);
+        zSetOperations.add("searchRank", "keyword5", 7);
+
+        List<CommunitiesRankDto> responseDto = service.rank();
+        assertThat(responseDto).hasSize(4);
     }
 }
