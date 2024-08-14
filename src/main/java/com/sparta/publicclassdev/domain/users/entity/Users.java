@@ -79,4 +79,8 @@ public class Users {
     public void updatePoint(int point) {
         this.point = point;
     }
+    
+    public void setTeamUsers(List<TeamUsers> teamUsers) {
+        this.teamUsers = teamUsers;
+    }
 }

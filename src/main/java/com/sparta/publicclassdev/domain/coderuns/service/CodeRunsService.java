@@ -118,7 +118,7 @@ public class CodeRunsService {
         return codeRuns;
     }
     
-    private CodeRunner getCodeRunner(String language) {
+    public CodeRunner getCodeRunner(String language) {
         switch (language.toLowerCase()) {
             case "python":
                 return new PythonCodeRunner();
@@ -152,7 +152,7 @@ public class CodeRunsService {
             .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_CODEKATA));
     }
     
-    private void checkUserTeam(Users user, Teams team) {
+    public void checkUserTeam(Users user, Teams team) {
         boolean isInTeam = user.getTeamUsers().stream()
             .anyMatch(teamUser -> teamUser.getTeams().equals(team));
         if (!isInTeam) {

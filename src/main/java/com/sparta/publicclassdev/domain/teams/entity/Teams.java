@@ -11,6 +11,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import java.util.ArrayList;
 import java.util.List;
 import lombok.Builder;
 import lombok.Getter;
@@ -47,5 +48,9 @@ public class Teams extends Timestamped {
     
     public void addTeamUser(TeamUsers teamUser) {
         this.teamUsers.add(teamUser);
+    }
+    
+    public void setTeamUsers(List<TeamUsers> teamUsers) {
+        this.teamUsers = teamUsers;
     }
 }
