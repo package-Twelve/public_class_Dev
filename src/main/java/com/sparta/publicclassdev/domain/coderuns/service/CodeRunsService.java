@@ -74,6 +74,7 @@ public class CodeRunsService {
         throw new CustomException(ErrorCode.INVALID_REQUEST);
     }
     
+    @Transactional
     public List<CodeRunsResponseDto> getCodeRunsByTeam(Long teamsId) {
         Users users = getCurrentUser();
         Teams teams = findTeamById(teamsId);
@@ -152,6 +153,7 @@ public class CodeRunsService {
             .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_CODEKATA));
     }
     
+    @Transactional
     public void checkUserTeam(Users user, Teams team) {
         boolean isInTeam = user.getTeamUsers().stream()
             .anyMatch(teamUser -> teamUser.getTeams().equals(team));

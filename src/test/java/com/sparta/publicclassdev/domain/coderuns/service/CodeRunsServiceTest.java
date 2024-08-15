@@ -1,16 +1,12 @@
 package com.sparta.publicclassdev.domain.coderuns.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sparta.publicclassdev.domain.codekatas.entity.CodeKatas;
 import com.sparta.publicclassdev.domain.codekatas.repository.CodeKatasRepository;
 import com.sparta.publicclassdev.domain.coderuns.dto.CodeRunsRequestDto;
+import com.sparta.publicclassdev.domain.coderuns.dto.CodeRunsResponseDto;
 import com.sparta.publicclassdev.domain.coderuns.entity.CodeRuns;
 import com.sparta.publicclassdev.domain.coderuns.repository.CodeRunsRepository;
 import com.sparta.publicclassdev.domain.teams.entity.TeamUsers;
@@ -20,85 +16,105 @@ import com.sparta.publicclassdev.domain.teams.repository.TeamsRepository;
 import com.sparta.publicclassdev.domain.users.entity.RoleEnum;
 import com.sparta.publicclassdev.domain.users.entity.Users;
 import com.sparta.publicclassdev.domain.users.repository.UsersRepository;
+import com.sparta.publicclassdev.global.exception.CustomException;
 import com.sparta.publicclassdev.global.security.JwtUtil;
-import java.nio.charset.StandardCharsets;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.transaction.Transactional;
 import java.util.ArrayList;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.test.util.ReflectionTestUtils;
 
 @SpringBootTest
-@AutoConfigureMockMvc
 @ActiveProfiles("test")
 public class CodeRunsServiceTest {
     
     @Autowired
-    private MockMvc mockMvc;
-    
-    @Autowired
-    private ObjectMapper objectMapper;
-    
-    @Autowired
-    private UsersRepository usersRepository;
-    
-    @Autowired
-    private TeamsRepository teamsRepository;
-    
-    @Autowired
-    private TeamUsersRepository teamUsersRepository;
+    private CodeRunsService codeRunsService;
     
     @Autowired
     private CodeRunsRepository codeRunsRepository;
     
     @Autowired
+    private TeamsRepository teamsRepository;
+    
+    @Autowired
     private CodeKatasRepository codeKatasRepository;
     
     @Autowired
-    private JwtUtil jwtUtil;
+    private UsersRepository usersRepository;
     
-    private Users user;
+    @Autowired
+    private TeamUsersRepository teamUsersRepository;
+    
+    private Users adminUser;
     private Teams team;
     private CodeKatas codeKatas;
-    private String token;
     
     @BeforeEach
     void setUp() {
-        codeRunsRepository.deleteAll();
-        teamUsersRepository.deleteAll();
-        usersRepository.deleteAll();
-        teamsRepository.deleteAll();
-        codeKatasRepository.deleteAll();
+        adminUser = createUser();
+        usersRepository.save(adminUser);
         
-        user = createUser();
         team = createTeam();
-        codeKatas = createCodeKatas();
+        teamsRepository.save(team);
         
+        codeKatas = createCodeKatas();
+        codeKatasRepository.save(codeKatas);
+        
+        addUserToTeam(adminUser, team);
+        
+        setUpSecurityContext(adminUser);
+    }
+    
+    private void addUserToTeam(Users user, Teams team) {
         usersRepository.save(user);
         teamsRepository.save(team);
-        codeKatas = codeKatasRepository.save(codeKatas);
         
-        addUserToTeam(user, team);
+        TeamUsers teamUsers = TeamUsers.builder()
+            .users(user)
+            .teams(team)
+            .build();
         
-        token = jwtUtil.createAccessToken(user);
+        user.setTeamUsers(new ArrayList<>());
+        user.getTeamUsers().add(teamUsers);
+        team.setTeamUsers(new ArrayList<>());
+        team.getTeamUsers().add(teamUsers);
+        
+        teamUsersRepository.save(teamUsers);
     }
     
     private Users createUser() {
-        return Users.builder()
+        Users user = Users.builder()
             .name("testuser")
-            .email("testuser@email.com")
+            .email("testuser" + System.currentTimeMillis() + "@email.com")
             .password(new BCryptPasswordEncoder().encode("password"))
             .role(RoleEnum.ADMIN)
             .point(0)
             .build();
+        return user;
+    }
+    
+    private void setUpSecurityContext(Users user) {
+        UserDetails userDetails = org.springframework.security.core.userdetails.User.builder()
+            .username(user.getEmail())
+            .password(user.getPassword())
+            .authorities(user.getRole().toString())
+            .build();
+        
+        Authentication auth = new UsernamePasswordAuthenticationToken(userDetails,
+            user.getPassword(), userDetails.getAuthorities());
+        SecurityContextHolder.getContext().setAuthentication(auth);
     }
     
     private Teams createTeam() {
@@ -114,70 +130,68 @@ public class CodeRunsServiceTest {
             .build();
     }
     
-    private void addUserToTeam(Users user, Teams team) {
-        TeamUsers teamUsers = TeamUsers.builder()
-            .users(user)
-            .teams(team)
-            .build();
-        
-        user.setTeamUsers(new ArrayList<>());
-        team.setTeamUsers(new ArrayList<>());
-        
-        user.getTeamUsers().add(teamUsers);
-        team.getTeamUsers().add(teamUsers);
-        
-        usersRepository.save(user);
-        teamsRepository.save(team);
-    }
-    
     private CodeRunsRequestDto createCodeRunsRequestDto() {
         return CodeRunsRequestDto.builder()
             .language("java")
-            .code("public class Test {}")
+            .code("public class Test { public static void main(String[] args) {} }")
             .build();
     }
     
-    @DisplayName("코드 실행 기록 생성")
+    @DisplayName("코드 실행 기록 생성 테스트")
     @Test
-    public void testCreateCodeRun() throws Exception {
+    public void testRunCode() {
         CodeRunsRequestDto requestDto = createCodeRunsRequestDto();
         
-        MvcResult result = mockMvc.perform(post("/api/coderuns/myteam/{teamsId}/{codeKatasId}/runs", team.getId(), codeKatas.getId())
-                .header(HttpHeaders.AUTHORIZATION, token)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(requestDto)))
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.language").value("java"))
-            .andExpect(jsonPath("$.code").value("public class Test {}"))
-            .andReturn();
+        CodeRunsResponseDto responseDto = codeRunsService.runCode(team.getId(), codeKatas.getId(), requestDto);
         
-        String responseBody = result.getResponse().getContentAsString(StandardCharsets.UTF_8);
-        assertEquals(1, codeRunsRepository.count());
+        assertThat(responseDto.getLanguage()).isEqualTo("java");
+        assertThat(responseDto.getCode()).isEqualTo("public class Test { public static void main(String[] args) {} }");
+        
+        CodeRuns savedCodeRun = codeRunsRepository.findAll().get(0);
+        String result = savedCodeRun.getResult();
+        
+        assertThat(result).isNotNull();
+        assertThat(result).satisfies(res -> {
+            if (!res.equals("Success")) {
+                assertThat(res).startsWith("Execution time:");
+            }
+        });
+        assertThat(savedCodeRun.getLanguage()).isEqualTo(responseDto.getLanguage());
+        assertThat(savedCodeRun.getCode()).isEqualTo(responseDto.getCode());    }
+    
+    @DisplayName("팀 코드 실행 기록 조회 테스트")
+    @Test
+    public void testGetCodeRunsByTeam() {
+        CodeRunsRequestDto requestDto = createCodeRunsRequestDto();
+        codeRunsService.runCode(team.getId(), codeKatas.getId(), requestDto);
+        
+        List<CodeRunsResponseDto> codeRunsList = codeRunsService.getCodeRunsByTeam(team.getId());
+        
+        assertThat(codeRunsList).isNotEmpty();
+        assertThat(codeRunsList.get(0).getLanguage()).isEqualTo("java");
+        assertThat(codeRunsList.get(0).getCode()).isEqualTo(
+            "public class Test { public static void main(String[] args) {} }");
     }
     
-    @DisplayName("팀 코드 실행 기록 조회")
+    @DisplayName("팀 코드 실행 기록 삭제 테스트")
     @Test
-    public void testGetCodeRunsByTeam() throws Exception {
-        CodeRuns codeRun = CodeRuns.builder()
-            .code("public class Test {}")
-            .responseTime(123L)
-            .result("Success")
-            .language("java")
-            .teams(team)
-            .users(user)
-            .codeKatas(codeKatas)
-            .build();
+    public void testDeleteCodeRun() {
+        CodeRunsRequestDto requestDto = createCodeRunsRequestDto();
+        CodeRunsResponseDto responseDto = codeRunsService.runCode(team.getId(), codeKatas.getId(),
+            requestDto);
         
-        codeRunsRepository.save(codeRun);
+        codeRunsService.deleteCodeRun(responseDto.getId());
         
-        mockMvc.perform(get("/api/coderuns/myteam/{teamsId}/runs", team.getId())
-                .header(HttpHeaders.AUTHORIZATION, token)
-                .contentType(MediaType.APPLICATION_JSON))
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$[0].language").value("java"))
-            .andExpect(jsonPath("$[0].code").value("public class Test {}"))
-            .andExpect(jsonPath("$[0].result").value("Success"));
+        assertThat(codeRunsRepository.count()).isEqualTo(0);
+    }
+    
+    @DisplayName("유효하지 않은 팀 ID로 코드 실행 시 예외 발생 테스트")
+    @Test
+    public void testRunCodeWithInvalidTeamId() {
+        CodeRunsRequestDto requestDto = createCodeRunsRequestDto();
         
-        assertThat(codeRunsRepository.count()).isEqualTo(1);
+        assertThrows(CustomException.class, () -> {
+            codeRunsService.runCode(999L, codeKatas.getId(), requestDto);
+        });
     }
 }

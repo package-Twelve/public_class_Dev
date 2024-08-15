@@ -14,6 +14,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import java.util.ArrayList;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -46,14 +47,14 @@ public class Users {
     @Column(nullable = false)
     @Enumerated(value = EnumType.STRING)
     private RoleEnum role;
-
-    @OneToMany(mappedBy = "users")
-    private List<TeamUsers> teamUsers;
-
-    @OneToMany(mappedBy = "users")
+    
+    @OneToMany(mappedBy = "users", cascade = CascadeType.REMOVE)
+    private List<TeamUsers> teamUsers = new ArrayList<>();
+    
+    @OneToMany(mappedBy = "users", cascade = CascadeType.REMOVE)
     private List<ChatRoomUsers> chatRoomUsers;
-
-    @OneToMany(mappedBy = "users")
+    
+    @OneToMany(mappedBy = "users", cascade = CascadeType.REMOVE)
     private List<Messages> messages;
     
     @OneToMany(mappedBy = "users", cascade = CascadeType.REMOVE)
