@@ -17,9 +17,6 @@ import com.sparta.publicclassdev.domain.users.entity.RoleEnum;
 import com.sparta.publicclassdev.domain.users.entity.Users;
 import com.sparta.publicclassdev.domain.users.repository.UsersRepository;
 import com.sparta.publicclassdev.global.exception.CustomException;
-import com.sparta.publicclassdev.global.security.JwtUtil;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
@@ -33,7 +30,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.util.ReflectionTestUtils;
 
 @SpringBootTest
 @ActiveProfiles("test")
@@ -142,10 +138,12 @@ public class CodeRunsServiceTest {
     public void testRunCode() {
         CodeRunsRequestDto requestDto = createCodeRunsRequestDto();
         
-        CodeRunsResponseDto responseDto = codeRunsService.runCode(team.getId(), codeKatas.getId(), requestDto);
+        CodeRunsResponseDto responseDto = codeRunsService.runCode(team.getId(), codeKatas.getId(),
+            requestDto);
         
         assertThat(responseDto.getLanguage()).isEqualTo("java");
-        assertThat(responseDto.getCode()).isEqualTo("public class Test { public static void main(String[] args) {} }");
+        assertThat(responseDto.getCode()).isEqualTo(
+            "public class Test { public static void main(String[] args) {} }");
         
         CodeRuns savedCodeRun = codeRunsRepository.findAll().get(0);
         String result = savedCodeRun.getResult();
@@ -157,7 +155,8 @@ public class CodeRunsServiceTest {
             }
         });
         assertThat(savedCodeRun.getLanguage()).isEqualTo(responseDto.getLanguage());
-        assertThat(savedCodeRun.getCode()).isEqualTo(responseDto.getCode());    }
+        assertThat(savedCodeRun.getCode()).isEqualTo(responseDto.getCode());
+    }
     
     @DisplayName("팀 코드 실행 기록 조회 테스트")
     @Test
