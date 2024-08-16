@@ -31,7 +31,7 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-class WinnersServiceTest {
+class WinnersServiceUnitTest {
     
     @Mock
     private CodeRunsRepository codeRunsRepository;
