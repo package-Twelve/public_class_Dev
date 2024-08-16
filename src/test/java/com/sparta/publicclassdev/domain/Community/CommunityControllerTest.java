@@ -58,8 +58,8 @@ class CommunityControllerTest {
     public void setUp() throws Exception {
 
         Users user = Users.builder()
-            .name("testuser")
-            .email("test@email.com")
+            .name("leesebi")
+            .email("leesebi@email.com")
             .password("Test1234!")
             .role(RoleEnum.USER)
             .build();
@@ -77,7 +77,7 @@ class CommunityControllerTest {
 
 
     @Test
-    @WithUserDetails(value = "test@email.com", setupBefore = TestExecutionEvent.TEST_EXECUTION)
+    @WithUserDetails(value = "leesebi@email.com", setupBefore = TestExecutionEvent.TEST_EXECUTION)
     @Order(1)
     @Transactional
     void createPost() throws Exception {
@@ -95,7 +95,7 @@ class CommunityControllerTest {
     }
 
     @Test
-    @WithUserDetails(value = "test@email.com", setupBefore = TestExecutionEvent.TEST_EXECUTION)
+    @WithUserDetails(value = "leesebi@email.com", setupBefore = TestExecutionEvent.TEST_EXECUTION)
     @Order(2)
     @Transactional
     void findPost() throws Exception{
@@ -106,7 +106,7 @@ class CommunityControllerTest {
     }
 
     @Test
-    @WithUserDetails(value = "test@email.com", setupBefore = TestExecutionEvent.TEST_EXECUTION)
+    @WithUserDetails(value = "leesebi@email.com", setupBefore = TestExecutionEvent.TEST_EXECUTION)
     @Order(3)
     @Transactional
     void findPosts() throws Exception{
@@ -116,7 +116,7 @@ class CommunityControllerTest {
     }
 
     @Test
-    @WithUserDetails(value = "test@email.com", setupBefore = TestExecutionEvent.TEST_EXECUTION)
+    @WithUserDetails(value = "leesebi@email.com", setupBefore = TestExecutionEvent.TEST_EXECUTION)
     @Order(4)
     @Transactional
     void updatePost() throws Exception {
@@ -132,7 +132,7 @@ class CommunityControllerTest {
     }
 
     @Test
-    @WithUserDetails(value = "test@email.com", setupBefore = TestExecutionEvent.TEST_EXECUTION)
+    @WithUserDetails(value = "leesebi@email.com", setupBefore = TestExecutionEvent.TEST_EXECUTION)
     @Order(5)
     @Transactional
     void searchPost() throws Exception {
@@ -145,7 +145,7 @@ class CommunityControllerTest {
     }
 
     @Test
-    @WithUserDetails(value = "test@email.com", setupBefore = TestExecutionEvent.TEST_EXECUTION)
+    @WithUserDetails(value = "leesebi@email.com", setupBefore = TestExecutionEvent.TEST_EXECUTION)
     @Order(6)
     @Transactional
     void ranking() throws Exception {
@@ -156,7 +156,7 @@ class CommunityControllerTest {
     }
 
     @Test
-    @WithUserDetails(value = "test@email.com", setupBefore = TestExecutionEvent.TEST_EXECUTION)
+    @WithUserDetails(value = "leesebi@email.com", setupBefore = TestExecutionEvent.TEST_EXECUTION)
     @Order(7)
     @DirtiesContext
     @Transactional
