@@ -61,7 +61,6 @@ public class TeamsServiceTest {
         
         mockRequest = Mockito.mock(HttpServletRequest.class);
         String token = jwtUtil.createAccessToken(users);
-        System.out.println("Generated Token: " + token);
         
         Mockito.when(mockRequest.getHeader("Authorization")).thenReturn(token);
     }
