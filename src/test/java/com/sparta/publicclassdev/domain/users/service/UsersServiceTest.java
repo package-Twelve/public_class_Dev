@@ -36,6 +36,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -202,7 +203,32 @@ class UsersServiceTest {
         assertNotNull(responseDto.getAccessToken());
         assertNotNull(responseDto.getRefreshToken());
     }
+    @Test
+    void loginCheckEmailException() {
+        AuthRequestDto requestDto = createTestAuthRequestDto();
+        given(usersRepository.findByEmail(anyString())).willReturn(Optional.empty());
 
+        Throwable exception = assertThrows(CustomException.class, () -> usersService.login(requestDto));
+        assertEquals(ErrorCode.CHECK_EMAIL.getMessage(), exception.getMessage());
+    }
+    @Test
+    void loginIncorrectPasswordException() {
+        AuthRequestDto requestDto = createTestAuthRequestDto();
+        ReflectionTestUtils.setField(requestDto, "password", testPassword + "incorrect");
+        given(usersRepository.findByEmail(anyString())).willReturn(Optional.of(testUser));
+
+        Throwable exception = assertThrows(CustomException.class, () -> usersService.login(requestDto));
+        assertEquals(ErrorCode.INCORRECT_PASSWORD.getMessage(), exception.getMessage());
+    }
+    @Test
+    void loginUserWithdrawException() {
+        AuthRequestDto requestDto = createTestAuthRequestDto();
+        ReflectionTestUtils.setField(testUser, "role", RoleEnum.WITHDRAW);
+        given(usersRepository.findByEmail(anyString())).willReturn(Optional.of(testUser));
+
+        Throwable exception = assertThrows(CustomException.class, () -> usersService.login(requestDto));
+        assertEquals(ErrorCode.USER_WITHDRAW.getMessage(), exception.getMessage());
+    }
     @Test
     void getProfile() {
         ProfileResponseDto responseDto = usersService.getProfile(testUser);
@@ -213,7 +239,13 @@ class UsersServiceTest {
         assertEquals(responseDto.getEmail(), testEmail);
         assertEquals(responseDto.getRole(), testUserRole);
     }
+    @Test
+    void findByIdUserNotFoundException() {
+        given(usersRepository.findById(anyLong())).willReturn(Optional.empty());
 
+        Throwable exception = assertThrows(CustomException.class, () -> usersService.findById(testUser.getId()));
+        assertEquals(ErrorCode.USER_NOT_FOUND.getMessage(), exception.getMessage());
+    }
     @Test
     void updateProfile() {
         ProfileRequestDto requestDto = createTestProfileRequestDto();
@@ -279,6 +311,23 @@ class UsersServiceTest {
         assertNotNull(responseDto.getRefreshToken());
     }
     @Test
+    void reissueTokenNotFoundEmailException() {
+        given(jwtUtil.substringToken(anyString())).willReturn("refresh");
+        given(usersRepository.findByEmail(anyString())).willReturn(Optional.empty());
+
+        Throwable exception = assertThrows(UsernameNotFoundException.class, () -> usersService.reissueToken("refresh", testEmail));
+        assertEquals("Not Found " + testEmail, exception.getMessage());
+    }
+    @Test
+    void reissueTokenTokenMismatchException() {
+        given(jwtUtil.substringToken(anyString())).willReturn("refresh");
+        given(usersRepository.findByEmail(anyString())).willReturn(Optional.of(testUser));
+        given(redisDao.getRefreshToken(anyString())).willReturn("refresh");
+
+        Throwable exception = assertThrows(CustomException.class, () -> usersService.reissueToken("incorrectrefresh", testEmail));
+        assertEquals(ErrorCode.TOKEN_MISMATCH.getMessage(), exception.getMessage());
+    }
+    @Test
     void logout() {
         given(jwtUtil.substringToken(anyString())).willReturn("access");
         given(jwtUtil.getExpiration(anyString())).willReturn(1775011L);
@@ -286,7 +335,15 @@ class UsersServiceTest {
 
         usersService.logout("Bearer access", testEmail);
     }
+    @Test
+    void logoutAlreadyLogoutException() {
+        given(jwtUtil.substringToken(anyString())).willReturn("access");
+        given(jwtUtil.getExpiration(anyString())).willReturn(1775011L);
+        given(redisDao.hasKey(anyString())).willReturn(false);
 
+        Throwable exception = assertThrows(CustomException.class, () -> usersService.logout("Bearer access", testEmail));
+        assertEquals(ErrorCode.USER_LOGOUT.getMessage(), exception.getMessage());
+    }
     @Test
     void withdraw() {
         AuthRequestDto requestDto = createTestAuthRequestDto();
@@ -294,5 +351,32 @@ class UsersServiceTest {
         usersService.withdraw(testUser.getId(), requestDto);
 
         assertEquals(testUser.getRole(), RoleEnum.WITHDRAW);
+    }
+    @Test
+    void withdrawCheckEmailException() {
+        AuthRequestDto requestDto = createTestAuthRequestDto();
+        ReflectionTestUtils.setField(requestDto, "email", "incorrect" + testEmail);
+        given(usersRepository.findById(anyLong())).willReturn(Optional.of(testUser));
+
+        Throwable exception = assertThrows(CustomException.class, () -> usersService.withdraw(testUser.getId(), requestDto));
+        assertEquals(ErrorCode.CHECK_EMAIL.getMessage(), exception.getMessage());
+    }
+    @Test
+    void withdrawIncorrectPasswordException() {
+        AuthRequestDto requestDto = createTestAuthRequestDto();
+        ReflectionTestUtils.setField(requestDto, "password", "incorrect" + testPassword);
+        given(usersRepository.findById(anyLong())).willReturn(Optional.of(testUser));
+
+        Throwable exception = assertThrows(CustomException.class, () -> usersService.withdraw(testUser.getId(), requestDto));
+        assertEquals(ErrorCode.INCORRECT_PASSWORD.getMessage(), exception.getMessage());
+    }
+    @Test
+    void withdrawUserWithdrawException() {
+        AuthRequestDto requestDto = createTestAuthRequestDto();
+        ReflectionTestUtils.setField(testUser, "role", RoleEnum.WITHDRAW);
+        given(usersRepository.findById(anyLong())).willReturn(Optional.of(testUser));
+
+        Throwable exception = assertThrows(CustomException.class, () -> usersService.withdraw(testUser.getId(), requestDto));
+        assertEquals(ErrorCode.USER_WITHDRAW.getMessage(), exception.getMessage());
     }
 }
