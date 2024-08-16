@@ -231,8 +231,8 @@ class UsersServiceTest {
     }
     @Test
     void getProfile() {
-        ProfileResponseDto responseDto = usersService.getProfile(testUser);
         given(communitiesRepository.findPostByUserLimit5(any(Users.class))).willReturn(new ArrayList<>());
+        ProfileResponseDto responseDto = usersService.getProfile(testUser);
 
         assertNotNull(responseDto);
         assertEquals(responseDto.getName(), testName);
