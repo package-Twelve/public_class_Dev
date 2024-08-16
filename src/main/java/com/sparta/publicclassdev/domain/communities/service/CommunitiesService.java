@@ -94,7 +94,7 @@ public class CommunitiesService {
         if (commentsList == null) {
             commentsList = Collections.emptyList();
         }
-        List<CommunityCommentResponseDto> responseDto = commentsList.stream().map(communityComments -> new CommunityCommentResponseDto(communityComments.getContent(), communityComments.getId()))
+        List<CommunityCommentResponseDto> responseDto = commentsList.stream().map(communityComments -> new CommunityCommentResponseDto(communityComments.getContent(), communityComments.getId(), communityComments.getId()))
             .toList();
         return new CommunitiesResponseDto(community.getId(), community.getTitle(), community.getContent(), community.getCreatedAt(), community.getCategory(), community.getUser().getName(), responseDto);
     }

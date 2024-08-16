@@ -21,6 +21,7 @@ public class CommunityCommentsService {
 
     private final CommunityCommentsRepository repository;
     private final CommunitiesRepository communityRepository;
+
     public CommunityCommentResponseDto createComment(Long communityId, CommunityCommentsRequestDto requestDto, Users user) {
         Communities community = checkCommunity(communityId);
 
@@ -32,7 +33,7 @@ public class CommunityCommentsService {
 
         repository.save(comment);
 
-        return new CommunityCommentResponseDto(requestDto.getContents(), community.getId());
+        return new CommunityCommentResponseDto(requestDto.getContents(), community.getId(), comment.getId());
     }
 
     public CommunityCommentResponseDto updateComment(Long communityId, Long commentId, CommunityCommentsRequestDto requestDto, Users user) {
@@ -47,7 +48,7 @@ public class CommunityCommentsService {
 
         repository.save(comment);
 
-        return new CommunityCommentResponseDto(requestDto.getContents(), community.getId());
+        return new CommunityCommentResponseDto(requestDto.getContents(), community.getId(), comment.getId());
     }
 
     public List<CommunityCommentResponseDto> findComments(Long communityId) {
@@ -55,7 +56,7 @@ public class CommunityCommentsService {
 
         List<CommunityComments> comment = repository.findByCommunity(community);
         return comment.stream()
-            .map(CommunityComments -> new CommunityCommentResponseDto(CommunityComments.getContent(), CommunityComments.getCommunity().getId()))
+            .map(CommunityComments -> new CommunityCommentResponseDto(CommunityComments.getContent(), CommunityComments.getCommunity().getId(), CommunityComments.getId()))
             .collect(Collectors.toList());
     }
 
