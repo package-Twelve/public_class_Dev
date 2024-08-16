@@ -27,23 +27,23 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Users {
-
+    
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
+    
     @Column(nullable = false)
     private String name;
-
+    
     @Column(nullable = false)
     private String email;
-
+    
     private String intro;
-
+    
     @Column(nullable = false)
     private String password;
     private int point;
-
+    
     @Column(nullable = false)
     @Enumerated(value = EnumType.STRING)
     private RoleEnum role;
@@ -52,13 +52,13 @@ public class Users {
     private List<TeamUsers> teamUsers = new ArrayList<>();
     
     @OneToMany(mappedBy = "users", cascade = CascadeType.REMOVE)
-    private List<ChatRoomUsers> chatRoomUsers;
+    private List<ChatRoomUsers> chatRoomUsers = new ArrayList<>();
     
     @OneToMany(mappedBy = "users", cascade = CascadeType.REMOVE)
-    private List<Messages> messages;
+    private List<Messages> messages = new ArrayList<>();
     
     @OneToMany(mappedBy = "users", cascade = CascadeType.REMOVE)
-    private List<CodeRuns> codeRuns;
+    private List<CodeRuns> codeRuns = new ArrayList<>();
     
     @Builder
     public Users(String name, String email, String password, int point, RoleEnum role) {
@@ -68,20 +68,20 @@ public class Users {
         this.point = point;
         this.role = role;
     }
-
+    
     public void updateUsers(String name, String intro) {
         this.name = name;
         this.intro = intro;
     }
-
+    
     public void updatePassword(String password) {
         this.password = password;
     }
-
+    
     public void updateRole(RoleEnum role) {
         this.role = role;
     }
-
+    
     public void updatePoint(int point) {
         this.point = point;
     }
