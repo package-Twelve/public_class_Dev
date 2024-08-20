@@ -5,12 +5,12 @@
 취업 준비생부터 현업 개발자까지, 모든 개발자들의 소통과 스킬셋 향상을 지원하는 커뮤니티 사이트입니다.
 ```
 
-## 📁 package twelve
-![image](https://github.com/user-attachments/assets/061e662e-c01f-4e14-be1c-48520027add3)
-
 | frontend                                                           | backend                                                                                                   |
 |--------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------|
 | [![176033257](https://github.com/user-attachments/assets/6c1d5c0e-4036-4b32-9223-d359c14b6696)](https://github.com/package-Twelve/public_class_Dev) | [![176033257](https://github.com/user-attachments/assets/54824803-9924-44b2-8ef1-15a0c0c36287)](https://github.com/package-Twelve/public_class_Dev_Front) |
+
+## 📁 package twelve
+![image](https://github.com/user-attachments/assets/061e662e-c01f-4e14-be1c-48520027add3)
 
 <div id="teck-stack">
   
